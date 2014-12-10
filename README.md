@@ -1,4 +1,4 @@
-mobile-flux
+mox
 ===========
 
 Mobile webapp data model build with flux.
