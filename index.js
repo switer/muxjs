@@ -1,3 +1,3 @@
 'use strict';
 
-var Message = require('./lib/message')
+module.exports = require('./lib/mux')
