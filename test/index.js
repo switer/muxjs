@@ -23,7 +23,10 @@ comment.$watch(function () {
 })
 
 comment.$set('title', 'hello world')
+console.log(comment.title)
 comment.$set({
     title: 'rename',
     author: 'switer'
 })
+comment.$set('untitle', 123)
+// console.log(comment.untitle)
