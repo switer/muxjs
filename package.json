@@ -1,0 +1,23 @@
+{
+  "name": "muxjs",
+  "version": "0.0.0",
+  "description": "Modeling app states with muxjs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/switer/mux.git"
+  },
+  "keywords": [
+    "state",
+    "model"
+  ],
+  "author": "switer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/switer/mux/issues"
+  },
+  "homepage": "https://github.com/switer/mux"
+}
