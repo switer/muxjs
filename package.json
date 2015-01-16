@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/switer/mux/issues"
   },
-  "homepage": "https://github.com/switer/mux"
+  "homepage": "https://github.com/switer/mux",
+  "devDependencies": {
+    "tape": "^3.2.0"
+  }
 }
