@@ -32,9 +32,11 @@ var Comment = Mux.extend({
 
 var comment = new Comment()
 comment.watch('content', function (next, pre) {
-    console.log(next) // --> states mode
-    console.log(pre) // --> update !
-}).set('content', 'update !')
+    console.log(next) // --> update !
+    console.log(pre) // --> states model
+})
+comment.set('content', 'update !')
+console.log(comment.content) // update !
 ```
 
 ## API

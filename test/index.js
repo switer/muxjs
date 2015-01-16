@@ -8,7 +8,16 @@ var Comment = Mux.extend({
     props: function () {
         return {
             title: 'comment to me',
-            author: 'switer'
+            author: 'switer',
+            replyUsers: []
+        }
+    },
+    computed:  {
+        replies: {
+            deps: ['replyUsers'],
+            fn: function () {
+                return this.replyUsers.length
+            }
         }
     }
 })
@@ -29,4 +38,5 @@ comment.$set({
     author: 'switer'
 })
 comment.$set('untitle', 123)
-// console.log(comment.untitle)
+comment.$set('replyUsers', [1,2,3])
+console.log(comment.replies)
