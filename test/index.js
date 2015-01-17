@@ -1,3 +1,4 @@
-var test = require('tape')
+// var test = require('tape')
 var Mux = require('../index')
-require('./spec')(Mux, test)
+var assert = require('assert')
+require('./spec-mocha')(Mux, assert)
