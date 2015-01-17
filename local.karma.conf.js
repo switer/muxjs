@@ -1,30 +1,22 @@
 module.exports = function(config) {
     config.set({
-        logLevel: 'LOG_DEBUG', // 1
-
-        reporters: ['spec'], // 2
-
-        singleRun: true, // 3
+        logLevel: 'LOG_DEBUG',
+        reporters: ['spec'],
+        singleRun: true,
         autoWatch: false,
-
-        frameworks: [ // 4
+        frameworks: [
             'mocha',
             'browserify'
         ],
-
-        files: [ // 5
+        files: [
             'test/index.js'
         ],
-
-        preprocessors: { // 6
+        preprocessors: {
             'test/index.js': ['browserify']
         },
-
-        browserify: { // 7
+        browserify: {
             debug: true
         },
-
-        browsers: ['chrome'] // 8
-
+        browsers: ['chrome']
     });
 };

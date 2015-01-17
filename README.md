@@ -2,7 +2,7 @@ mux
 ===========
 Mobile webapp data model build with flux.
 <br />
-![logo](http://switer.qiniudn.com/mux-verti.png)
+![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/100)
 
 ## browser support
 ![browser support](https://ci.testling.com/switer/muxjs.png)

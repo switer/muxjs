@@ -1,31 +1,34 @@
 {
-    "name": "muxjs",
-    "version": "0.0.0",
-    "description": "Modeling app states with muxjs.",
-    "main": "index.js",
-    "scripts": {
-        "test": "mocha test/index.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/switer/mux.git"
-    },
-    "keywords": [
-        "state",
-        "model"
-    ],
-    "author": "switer",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/switer/mux/issues"
-    },
-    "homepage": "https://github.com/switer/mux",
-    "devDependencies": {
-        "karma": "^0.12.31",
-        "karma-bro": "^0.11.1",
-        "karma-mocha": "^0.1.10",
-        "karma-phantomjs-launcher": "^0.1.4",
-        "karma-spec-reporter": "0.0.16",
-        "mocha": "^2.1.0"
-    }
+  "name": "muxjs",
+  "version": "0.0.0",
+  "description": "Modeling app states with muxjs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/switer/mux.git"
+  },
+  "keywords": [
+    "state",
+    "model"
+  ],
+  "author": "switer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/switer/mux/issues"
+  },
+  "homepage": "https://github.com/switer/mux",
+  "devDependencies": {
+    "karma": "^0.12.31",
+    "karma-bro": "^0.11.1",
+    "karma-mocha": "^0.1.10",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-spec-reporter": "0.0.16",
+    "mocha": "^2.1.0"
+  },
+  "dependencies": {
+    "karma-sauce-launcher": "^0.2.10"
+  }
 }
