@@ -4,6 +4,8 @@ Mobile webapp data model build with flux.
 <br />
 ![logo](http://switer.qiniudn.com/mux-verti.png)
 
+![testling](https://ci.testling.com/switer/muxjs.png)
+
 ## Installation
 **browser**
 ```html
@@ -29,7 +31,7 @@ var Comment = Mux.extend({
         }
     },
     computed: {
-        
+
     }
 })
 
