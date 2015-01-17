@@ -4,7 +4,7 @@
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
-    "test": "node test/index.js"
+    "test": "tape test/*.js"
   },
   "repository": {
     "type": "git",
