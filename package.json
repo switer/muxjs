@@ -4,7 +4,7 @@
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
-    "test": "node test"
+    "test": "node test/index.js"
   },
   "repository": {
     "type": "git",
@@ -22,5 +22,18 @@
   "homepage": "https://github.com/switer/mux",
   "devDependencies": {
     "tape": "^3.2.0"
+  },
+  "testling": {
+    "files": "test/*.js",
+    "browsers": [
+      "ie/9..latest",
+      "chrome/22..latest",
+      "firefox/16..latest",
+      "safari/latest",
+      "opera/11.0..latest",
+      "iphone/6",
+      "ipad/6",
+      "android-browser/latest"
+    ]
   }
 }

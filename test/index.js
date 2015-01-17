@@ -1,3 +1,3 @@
-global.test = require('tape')
-global.Mux = require('../index')
-require('./spec')
+var test = require('tape')
+var Mux = require('../index')
+require('./spec')(Mux, test)
