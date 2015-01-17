@@ -27,6 +27,9 @@ var Comment = Mux.extend({
                 content: 'awesome !'
             }]
         }
+    },
+    computed: {
+        
     }
 })
 
