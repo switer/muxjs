@@ -35,6 +35,28 @@ module.exports = function (Mux, assert) {
             comment['title'] = 123
             assert.equal(comment.title, 123)
         })
+        it('Using "=" operator to set property to an unobserved property to model object', function () {
+            comment.replies123 = true
+            assert.equal(comment.replies123, true)
+        })
+    })
+    describe('computed', function (t) {
+        it('Default replies is 0', function () {
+            assert.equal(comment.replies, 0)
+        })
+        it('Using "=" operator to set property to a computed value', function () {
+            comment.replies = 10
+            assert.equal(comment.replies, 0)
+        })
+        it('Callback When dependenies change', function (done) {
+            assert.equal(comment.replies, 0)
+            comment.$watch('replies', function () {
+                assert.equal(comment.replies, 1)
+                done()
+            })
+            comment.replyUsers.push(1)
+        })
 
     })
+
 }
