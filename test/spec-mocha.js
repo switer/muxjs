@@ -23,7 +23,7 @@ module.exports = function (Mux, assert) {
     })
     var comment = new Comment()
 
-    describe('props', function (t) {
+    describe('props', function () {
         it('Default property\'s value is correct', function () {
             assert.equal(comment.title, 'comment to me')
         })
@@ -39,8 +39,40 @@ module.exports = function (Mux, assert) {
             comment.replies123 = true
             assert.equal(comment.replies123, true)
         })
+        it('Array .push() hook', function () {
+            comment.$unwatch()
+            comment.$watch('replyUsers', function (next, pre) {
+                assert.equal(pre.length, 0)
+                assert.equal(next.length, 1)
+            })
+            comment.replyUsers.push(1)
+        })
+        it('Array .pop() hook', function () {
+            comment.$unwatch()
+            comment.$watch('replyUsers', function (next, pre) {
+                assert.equal(pre.length, 1)
+                assert.equal(next.length, 0)
+            })
+            comment.replyUsers.pop()
+        })
+        it('Array .unshift() hook', function () {
+            comment.$unwatch()
+            comment.$watch('replyUsers', function (next, pre) {
+                assert.equal(pre.length, 0)
+                assert.equal(next.length, 1)
+            })
+            comment.replyUsers.unshift(2)
+        })
+        it('Array .shift() hook', function () {
+            comment.$unwatch()
+            comment.$watch('replyUsers', function (next, pre) {
+                assert.equal(pre.length, 1)
+                assert.equal(next.length, 0)
+            })
+            comment.replyUsers.shift()
+        })
     })
-    describe('computed', function (t) {
+    describe('computed', function () {
         it('Default replies is 0', function () {
             assert.equal(comment.replies, 0)
         })
@@ -50,6 +82,7 @@ module.exports = function (Mux, assert) {
         })
         it('Callback When dependenies change', function (done) {
             assert.equal(comment.replies, 0)
+            comment.$unwatch()
             comment.$watch('replies', function () {
                 assert.equal(comment.replies, 1)
                 done()
@@ -57,6 +90,138 @@ module.exports = function (Mux, assert) {
             comment.replyUsers.push(1)
         })
 
+    })
+    describe('$set && $watch && $unwatch', function () {
+        it('Get value after set value immediately', function () {
+            comment.$set('title', 'comment to that')
+            assert.equal(comment.title, 'comment to that')
+        })
+        it('Change callback after set', function (done) {
+            comment.$watch('title', function (next, pre) {
+                assert.equal(pre, 'comment to that')
+                assert.equal(next, 'comment to this')
+                assert.equal(comment.title, 'comment to this')
+                done()
+            })
+            comment.$set('title','comment to this')
+        })
+        it('Unwatch last and watch again', function (done) {
+            var count = 0
+            comment.$unwatch('title')
+            comment.$set('title', 'comment to that')
+            assert.equal(comment.title, 'comment to that')
+            comment.$watch('title', function (next, pre) {
+                assert.equal(++count, 1)
+                assert.equal(pre, 'comment to that')
+                assert.equal(next, 'comment to this')
+                assert.equal(comment.title, 'comment to this')
+                done()
+            })
+            comment.$set('title','comment to this')
+        })
+        it('Watch computed property change', function (done) {
+            comment.$unwatch()
+            comment.$watch('replies', function () {
+                assert.equal(this.replies, 2)
+                done()
+            })
+            comment.replyUsers = [1,2]
+        })
+        it('Unwatch computed property then watch again', function (done) {
+            comment.$unwatch('replies')
+            comment.$watch('replies', function () {
+                assert.equal(this.replies, 3)
+                done()
+            })
+            comment.$set('replyUsers', [1,2,3])
+        })
+        it('Watch any properties change', function (done) {
+            comment.$unwatch()
+            comment.$watch(function () {
+                assert.equal(this.replies, 2)
+                done()
+            })
+            comment.$set('replyUsers', [1,2])
+        })
+        it('Set multiple props', function (done) {
+            var count = 0
+            comment.$unwatch()
+            comment.$watch(function () {
+                assert.equal(++count, 1)
+            })
+            var c2 = 0
+            comment.$watch(function () {
+                assert.equal(++c2, 1)
+                done()
+            })
+            comment.$set({
+                title: 'reset comment',
+                author: 'mux.js'
+            })
+            assert.equal(comment.author, 'mux.js')
+        })
+    })
+    describe('$add', function () {
+        it('observe a property', function () {
+            comment.$unwatch()
+            comment.$add('new')
+            comment.$watch('new', function (next, pre) {
+                assert.equal(next, 'new property')
+            })
+            comment.$set('new', 'new property')
+            assert.equal(comment.new, 'new property')
+        })
+        it('observe multiple properties', function () {
+            comment.$unwatch()
+            comment.$add('prop1', 'prop2')
+            comment.$watch('prop1', function (next, pre) {
+                assert.equal(next, 'new property 1')
+            })
+            comment.$watch('prop2', function (next, pre) {
+                assert.equal(next, 'new property 2')
+            })
+            comment.$set('prop1', 'new property 1')
+            comment.$set('prop2', 'new property 2')
+            assert.equal(comment['prop1'], 'new property 1')
+            assert.equal(comment['prop2'], 'new property 2')
+        })
+    })
+    describe('$computed', function (t) {
+        it('Define a computed property', function () {
+            comment.$unwatch()
+            comment.$computed('computed1', ['title'], function () {
+                return 'Say:' + this.title
+            })
+            comment.$watch('computed1', function () {
+                assert.equal(this.computed1, 'Say:hello')
+            })
+            comment.title = 'hello'
+        })
+        it('Define multiple computed properties', function () {
+            comment.$unwatch()
+            comment.$computed({
+                'computed2': {
+                    deps:['title'], 
+                    fn: function () {
+                        return 'Guankaishe say:' + this.title
+                    }
+                },
+                'computed3': {
+                    deps:['title'], 
+                    fn: function () {
+                        return 'Switer say:' + this.title
+                    }
+                }
+            })
+            comment.$watch('computed2', function () {
+                assert.equal(this.computed2, 'Guankaishe say:world')
+            })
+            comment.$watch('computed3', function () {
+                assert.equal(this.computed3, 'Switer say:world')
+            })
+            comment.title = 'world'
+            assert.equal(comment.computed2, 'Guankaishe say:world')
+        })
     })
 
 }
