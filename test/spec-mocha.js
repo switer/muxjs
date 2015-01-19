@@ -163,8 +163,13 @@ module.exports = function (Mux, assert) {
             var count = 0
             comment.$unwatch()
             comment.title = ''
-            function allCb () {
+            comment.replyUsers = []
+            function allCb (nextProp, preProp) {
                 count ++
+                assert.equal(nextProp.title, 'reset comment')
+                assert.equal(preProp.title, '')
+                assert.equal(nextProp.replies, 6)
+                assert.equal(preProp.replies, 0)
                 _done()
             }
             function titleCb (next, pre) {
@@ -175,6 +180,7 @@ module.exports = function (Mux, assert) {
             }
             function repliesCb (next, pre) {
                 assert.equal(next, 6)
+                assert.equal(this.replies, 6)
                 count ++
                 _done()
             }
