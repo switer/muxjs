@@ -1,8 +1,10 @@
 mux
 ===========
 Mobile webapp data model build with flux.
-<br />
-![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/100)
+
+![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/120)
+
+![build](https://travis-ci.org/switer/muxjs.svg?branch=master)
 
 ## browser support
 ![browser support](https://ci.testling.com/switer/muxjs.png)
@@ -24,25 +26,32 @@ var Comment = Mux.extend({
             title: 'states model',
             author: 'switer',
             content: 'Mobile webapp data model build with flux.',
-            replys: [{
-                autor: 'guankaishe',
+            replyUsers: [{
+                author: 'guankaishe',
                 id: 'xxxxxxxx',
                 content: 'awesome !'
             }]
         }
     },
     computed: {
-
+        replies: {
+            deps: ['replyUsers'],
+            fn: function () {
+                return this.replyUser.length
+            }
+        }
     }
 })
 
 var comment = new Comment()
-comment.watch('content', function (next, pre) {
-    console.log(next) // --> update !
-    console.log(pre) // --> states model
+comment.$watch('replies', function (next, pre) {
+    assert.equal(this.replies, 2)
 })
-comment.set('content', 'update !')
-console.log(comment.content) // update !
+comment.replyUsers.push({
+    author: 'guankaishe',
+    id: 'xxxxxxxx',
+    content: 'Cool'
+})
 ```
 
 ## API
