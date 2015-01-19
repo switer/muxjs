@@ -21,6 +21,10 @@ module.exports = function (Mux, assert) {
             }
         }
     })
+    var person = new Mux({
+        name: 'switer',
+        github: 'https://github.com/switer'
+    })
     var comment = new Comment()
 
     describe('props', function () {
