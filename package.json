@@ -30,6 +30,7 @@
     "mocha": "^2.1.0"
   },
   "dependencies": {
+    "karma-cli": "0.0.4",
     "karma-sauce-launcher": "^0.2.10"
   }
 }
