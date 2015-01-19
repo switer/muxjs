@@ -21,6 +21,10 @@ module.exports = function (Mux, test) {
             }
         }
     })
+    var person = new Mux({
+        name: 'switer',
+        github: 'https://github.com/switer'
+    })
     var comment = new Comment()
 
     test('props', function (t) {

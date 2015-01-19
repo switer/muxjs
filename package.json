@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run cover",
+    "mocha": "mocha test/index.js",
     "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
     "cover": "mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js"
   },
