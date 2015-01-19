@@ -104,6 +104,14 @@ module.exports = function (Mux, assert) {
             comment.$set('title', 'comment to that')
             assert.equal(comment.title, 'comment to that')
         })
+        it('Set value to an unobserved property using $set', function () {
+            comment.$set('unknow', 'unknow')
+            assert.equal(comment.unknow, undefined)
+        })
+        it('Set value to a computed property using $set', function () {
+            comment.$set('replies', 100)
+            assert.notEqual(comment.replies, 100)
+        })
         it('Change callback after set', function (done) {
             comment.$watch('title', function (next, pre) {
                 assert.equal(pre, 'comment to that')
@@ -154,19 +162,38 @@ module.exports = function (Mux, assert) {
         it('Set multiple props', function (done) {
             var count = 0
             comment.$unwatch()
-            comment.$watch(function () {
-                assert.equal(++count, 1)
-            })
-            var c2 = 0
-            comment.$watch(function () {
-                assert.equal(++c2, 1)
-                done()
-            })
+            comment.title = ''
+            function allCb () {
+                count ++
+                _done()
+            }
+            function titleCb (next, pre) {
+                assert.equal(next, 'reset comment')
+                assert.equal(pre, '')
+                count ++
+                _done()
+            }
+            function repliesCb (next, pre) {
+                assert.equal(next, 6)
+                count ++
+                _done()
+            }
+            function _done () {
+                if (count >= 3) {
+                    done()
+                    comment.$unwatch('title', titleCb)
+                    comment.$unwatch('replies', repliesCb)
+                    comment.$unwatch(allCb)
+                }
+            }
+            comment.$watch(allCb)
+            comment.$watch('title', titleCb)
+            comment.$watch('replies', repliesCb)
             comment.$set({
                 title: 'reset comment',
-                author: 'mux.js'
+                author: 'mux.js',
+                replyUsers: [1,2,3,4,5,6]
             })
-            assert.equal(comment.author, 'mux.js')
         })
         it('Set value by keyPath', function (done) {
             comment.$unwatch()
