@@ -4,7 +4,7 @@ Mobile webapp data model build with flux.
 
 ![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/120)
 
-![build](https://travis-ci.org/switer/muxjs.svg?branch=master)
+[![build](https://travis-ci.org/switer/muxjs.svg?branch=master)](https://travis-ci.org/switer/muxjs)
 
 ## browser support
 ![browser support](https://ci.testling.com/switer/muxjs.png)
