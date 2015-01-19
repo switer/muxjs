@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/index.js",
-    "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js"
+    "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
+    "cover": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls.js && rm -rf ./coverage"
   },
   "repository": {
     "type": "git",
@@ -22,15 +23,16 @@
   },
   "homepage": "https://github.com/switer/mux",
   "devDependencies": {
+    "coveralls": "^2.11.2",
+    "istanbul": "^0.3.5",
     "karma": "^0.12.31",
     "karma-bro": "^0.11.1",
-    "karma-mocha": "^0.1.10",
     "karma-chrome-launcher": "^0.1.7",
-    "karma-spec-reporter": "0.0.16",
-    "mocha": "^2.1.0"
-  },
-  "dependencies": {
     "karma-cli": "0.0.4",
-    "karma-sauce-launcher": "^0.2.10"
+    "karma-mocha": "^0.1.10",
+    "karma-sauce-launcher": "^0.2.10",
+    "karma-spec-reporter": "0.0.16",
+    "mocha": "^2.1.0",
+    "mocha-lcov-reporter": "0.0.1"
   }
 }
