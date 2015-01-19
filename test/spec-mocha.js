@@ -39,35 +39,39 @@ module.exports = function (Mux, assert) {
             comment.replies123 = true
             assert.equal(comment.replies123, true)
         })
-        it('Array .push() hook', function () {
+        it('Array .push() hook', function (done) {
             comment.$unwatch()
             comment.$watch('replyUsers', function (next, pre) {
                 assert.equal(pre.length, 0)
                 assert.equal(next.length, 1)
+                done()
             })
             comment.replyUsers.push(1)
         })
-        it('Array .pop() hook', function () {
+        it('Array .pop() hook', function (done) {
             comment.$unwatch()
             comment.$watch('replyUsers', function (next, pre) {
                 assert.equal(pre.length, 1)
                 assert.equal(next.length, 0)
+                done()
             })
             comment.replyUsers.pop()
         })
-        it('Array .unshift() hook', function () {
+        it('Array .unshift() hook', function (done) {
             comment.$unwatch()
             comment.$watch('replyUsers', function (next, pre) {
                 assert.equal(pre.length, 0)
                 assert.equal(next.length, 1)
+                done()
             })
             comment.replyUsers.unshift(2)
         })
-        it('Array .shift() hook', function () {
+        it('Array .shift() hook', function (done) {
             comment.$unwatch()
             comment.$watch('replyUsers', function (next, pre) {
                 assert.equal(pre.length, 1)
                 assert.equal(next.length, 0)
+                done()
             })
             comment.replyUsers.shift()
         })
@@ -160,6 +164,52 @@ module.exports = function (Mux, assert) {
             })
             assert.equal(comment.author, 'mux.js')
         })
+        it('Set value by keyPath', function (done) {
+            comment.$unwatch()
+            comment.replyUsers = [{
+                author: 'danyan',
+                comment: 'test'
+            }]
+            comment.$watch('replyUsers', function () {
+                assert.equal(this.replyUsers[0].comment, 'test update')
+                done()
+            })
+            comment.$set('replyUsers[0].comment', 'test update')
+
+        })
+        it('Set multiple value by keyPath', function (done) {
+            comment.$unwatch()
+            comment.replyUsers = [{
+                author: 'danyan'
+            }, {
+                author: 'test-user'
+            }]
+            comment.post = {
+                replyUsers: [{
+                    author: '*'
+                }]
+            }
+            comment.$watch('replyUsers', function () {
+                assert.equal(this.replyUsers[1].comment, 'test2')
+                done()
+            })
+            comment.$watch('post', function () {
+                assert.equal(this.post.replyUsers[0].comment, 'nothing')
+                done()
+            })
+            comment.$set('replyUsers[1].comment', 'test2')
+            comment.$set('post.replyUsers[1].comment', 'nothing')
+
+        })
+    })
+    describe('$get', function () {
+        it('get property value corrently', function () {
+            comment.$unwatch()
+            comment.title = 'mux.js'
+            comment.replyUsers = [1,2,3,4,5]
+            assert.equal(comment.$get('title'), 'mux.js')
+            assert.equal(comment.$get('replies'), 5)
+        })
     })
     describe('$add', function () {
         it('observe a property', function () {
@@ -171,7 +221,7 @@ module.exports = function (Mux, assert) {
             comment.$set('new', 'new property')
             assert.equal(comment.new, 'new property')
         })
-        it('observe multiple properties', function () {
+        it('observe multiple properties', function (done) {
             comment.$unwatch()
             comment.$add('prop1', 'prop2')
             comment.$watch('prop1', function (next, pre) {
@@ -179,6 +229,7 @@ module.exports = function (Mux, assert) {
             })
             comment.$watch('prop2', function (next, pre) {
                 assert.equal(next, 'new property 2')
+                done()
             })
             comment.$set('prop1', 'new property 1')
             comment.$set('prop2', 'new property 2')
@@ -187,17 +238,18 @@ module.exports = function (Mux, assert) {
         })
     })
     describe('$computed', function (t) {
-        it('Define a computed property', function () {
+        it('Define a computed property', function (done) {
             comment.$unwatch()
             comment.$computed('computed1', ['title'], function () {
                 return 'Say:' + this.title
             })
             comment.$watch('computed1', function () {
                 assert.equal(this.computed1, 'Say:hello')
+                done()
             })
             comment.title = 'hello'
         })
-        it('Define multiple computed properties', function () {
+        it('Define multiple computed properties', function (done) {
             comment.$unwatch()
             comment.$computed({
                 'computed2': {
@@ -218,6 +270,7 @@ module.exports = function (Mux, assert) {
             })
             comment.$watch('computed3', function () {
                 assert.equal(this.computed3, 'Switer say:world')
+                done()
             })
             comment.title = 'world'
             assert.equal(comment.computed2, 'Guankaishe say:world')

@@ -4,7 +4,8 @@
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/index.js"
+    "test": "mocha test/index.js",
+    "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js"
   },
   "repository": {
     "type": "git",
