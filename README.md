@@ -6,7 +6,7 @@
 Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your fine code and describe it as below:
 > if this condition and this other condition are met, then this value should be 'x'.
 
-So,  `vars` of conditions are state, and `condition` is transition, and `'x'` is transpositional state. Using **Muxjs**, you can track  `vars` changing and transition's result `x`  changing by
+So,  `vars` of conditions are state, and `condition` is transition, and `'x'` is transpositional state. Using **Muxjs**, you can track  `vars` changing and transition's result `'x'`  changing by
 subscribing their **change event**.
 
 

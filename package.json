@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npm run cover",
     "mocha": "mocha test/index.js",
+    "mocha-dist": "mocha test/index.dist.js",
     "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
     "cover": "mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
     "cover-html": "mocha --require blanket --reporter html-cov ./test/index.js > coverage.html"
@@ -27,6 +28,10 @@
   "devDependencies": {
     "blanket": "^1.1.6",
     "coveralls": "^2.11.2",
+    "gulp": "^3.8.10",
+    "gulp-uglify": "^1.1.0",
+    "gulp-uglifyjs": "^0.5.0",
+    "gulp-webpack": "^1.1.2",
     "istanbul": "^0.3.5",
     "mocha": "^2.1.0",
     "mocha-lcov-reporter": "0.0.1"
