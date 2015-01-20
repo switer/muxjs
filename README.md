@@ -1,13 +1,19 @@
 ![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/120) Muxjs
 ===========
 [![build](https://travis-ci.org/switer/muxjs.svg?branch=master)](https://travis-ci.org/switer/muxjs)
-[![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=develop)](https://coveralls.io/r/switer/muxjs?branch=master)
+[![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=master)](https://coveralls.io/r/switer/muxjs?branch=master)
 
 Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your look back code and find some logic are described as below:
 > if this condition and this other condition are met, then this value should be 'x'.
 
 So,  *vars* of conditions are state, and *condition* is transition, and *'x'* is transpositional state. Using **Muxjs**, you can track  *vars* changing and transition's result *'x'*  changing by
 subscribing their **change event**.
+
+![Case Diagram](http://switer.qiniudn.com/muxjs.png)
+Left of diagram is a app's **view-controller** with 5 state (circle), and state 3 state **transition logic** (rhombus).
+Right of disgram is an **UI Page** with 4 parts, each part is depend on state or state-transition.
+If state is trackable, then binding specified DOM opertions to state changing, 
+finally it implement the **data to dom binding**. It's usefull, all right?
 
 
 ## browser support
