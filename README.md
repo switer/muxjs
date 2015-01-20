@@ -18,10 +18,6 @@ Let's look at the example case diagram of a stateful application.
 If state is trackable, then binding specified DOM opertions to state changing, 
 finally it implement the **data to DOM binding**. It's usefull, all right?
 
-
-## browser support
-![browser support](https://ci.testling.com/switer/muxjs.png)
-
 ## Installation
 **browser**
 ```html
@@ -98,7 +94,9 @@ assert.equal((new person).name, 'mux')
 ##### *`$set([keyPath, value] | [props] )`*
 - **keyPath** `String` -- property path , such as:  *"items[0].name"*
 - **value** *optional*
+
 *or*
+
 - **props** `Object` *optional* -- data structure as below:  
     
     ```js
@@ -121,9 +119,13 @@ list.$set('items[0].name', '')
 ##### *`$add([propname [, defaultValue]] | [propnameArray] | [propsObj] )`*
 - **propname** `String` 
 - **defaultValue** *optional*
-or
+
+*or*
+
 - **propnameArray** `Array` 
-or 
+
+*or* 
+
 - **propsObj** `Object` 
 
 ##### *`$computed([propname, deps, fn] | [computedPropsObj])`*

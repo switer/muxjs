@@ -83,7 +83,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @public
 	 */
 	function Mux(options) {
-	    Ctor.call(this, options)
+	    Ctor.call(this, {
+	        props: function () {
+	            return options
+	        }
+	    })
 	}
 
 	/**
