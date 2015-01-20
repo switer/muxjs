@@ -26,7 +26,7 @@ npm install muxjs --save
 ## API Reference
 
 ### Mux Constructor and Class
-#### *`Mux(props)`*
+##### *`Mux(props)`*
 It is a constructor function that allows you to create Mux instances.
 *`props`* are those observed properties with default value.
 
@@ -35,7 +35,7 @@ var author = new Mux({
     name: 'switer'
 })
 ```
-equal to:
+Equal to:
 
 ```js
 var Person = Mux.extend({
@@ -48,7 +48,7 @@ var Person = Mux.extend({
 var author = Person()
 ```
 
-#### *`Mux.extend(options)`*
+##### *`Mux.extend(options)`*
 Create a "subclass" of the base Mux constructor. *`options`* see: [Instance Options](#instance-options)
 
 ```js
@@ -66,8 +66,7 @@ assert.equal(author.name, 'switer')
 ```
 
 ### Instance Options
-#### *`props`*
-
+##### *`props`*
 - Type: ` Function`
 
 Return the initial observed property object for this mux instance:
@@ -83,20 +82,46 @@ var Person = Mux.extend({
 assert.equal((new person).name, 'mux')
 ```
 
-#### *`computed`*
+##### *`computed`*
+- Type: ` Object`
 
 ### Instance Methods
-#### *`$set([keyPath, value] | [props] )`*
+##### *`$set([keyPath, value] | [props] )`*
+- **keyPath** `String` -- property path , such as:  *"items[0].name"*
+- **value** *optional*
+*or*
+- **props** `Object` *optional* -- data structure as below:  
+    
+    ```js
+    {
+        "propertyName": propertyValue
+    }
+    ```
 
-#### *`$get(propname)`*
+Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without include *[]* and *.* )
+```js
+var list = new Mux({
+    items: [{name: '1'}]
+})
+list.$set('items[0].name', '')
+```
 
-#### *`$add([propname [, defaultValue]] | [propnameArray] | [propsObj] )`*
+##### *`$get(propname)`*
+- **propname** `String`
 
-#### *`$computed([propname, deps, fn] | [computedPropsObj])`*
+##### *`$add([propname [, defaultValue]] | [propnameArray] | [propsObj] )`*
+- **propname** `String` 
+- **defaultValue** *optional*
+or
+- **propnameArray** `Array` 
+or 
+- **propsObj** `Object` 
 
-#### *`$watch([name, ] callback)`*
+##### *`$computed([propname, deps, fn] | [computedPropsObj])`*
 
-#### *`$unwatch([[name, ] callback])`*
+##### *`$watch([name, ] callback)`*
+
+##### *`$unwatch([[name, ] callback])`*
 
 ## Example
 ```js
