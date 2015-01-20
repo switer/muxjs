@@ -30,8 +30,8 @@ npm install muxjs --save
 
 ## API Reference
 
-### Mux Constructor and Class
-##### *`Mux(props)`*
+### Global API
+##### `Mux(props)`
 It is a constructor function that allows you to create Mux instances.
 *`props`* are those observed properties with default value.
 
@@ -53,8 +53,9 @@ var Person = Mux.extend({
 var author = Person()
 ```
 
-##### *`Mux.extend(options)`*
-Create a "subclass" of the base Mux constructor. *`options`* see: [Instance Options](#instance-options)
+##### `Mux.extend(options)`
+Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Options](#instance-options).
+*Class* could instance with param `propsObj` which will set values to those observered properties of the instance.  
 
 ```js
 var Person = Mux.extend({
@@ -71,7 +72,7 @@ assert.equal(author.name, 'switer')
 ```
 
 ### Instance Options
-##### *`props`*
+##### `props`
 - Type: ` Function`
 
 Return the initial observed property object for this mux instance:
@@ -87,17 +88,15 @@ var Person = Mux.extend({
 assert.equal((new person).name, 'mux')
 ```
 
-##### *`computed`*
+##### `computed`
 - Type: ` Object`
 
 ### Instance Methods
-##### *`$set([keyPath, value] | [props] )`*
-- **keyPath** `String` -- property path , such as:  *"items[0].name"*
-- **value** *optional*
-
-*or*
-
-- **props** `Object` *optional* -- data structure as below:  
+##### `$set([keyPath, value] | props )`
+- **keyPath** `String` property path , such as:  *"items[0].name"*
+- **value** *[optional]*
+- *or*
+- **props** `Object` *[optional]* data structure as below:  
     
     ```js
     {
@@ -113,26 +112,22 @@ var list = new Mux({
 list.$set('items[0].name', '')
 ```
 
-##### *`$get(propname)`*
+##### `$get(propname)`
 - **propname** `String`
 
-##### *`$add([propname [, defaultValue]] | [propnameArray] | [propsObj] )`*
+##### `$add([propname [, defaultValue]] | propnameArray | propsObj )`
 - **propname** `String` 
-- **defaultValue** *optional*
-
-*or*
-
+- **defaultValue** *[optional]*
+- *or*
 - **propnameArray** `Array` 
-
-*or* 
-
+- *or* 
 - **propsObj** `Object` 
 
-##### *`$computed([propname, deps, fn] | [computedPropsObj])`*
+##### `$computed([propname, deps, fn] | computedPropsObj)`
 
-##### *`$watch([name, ] callback)`*
+##### `$watch([name, ] callback)`
 
-##### *`$unwatch([[name, ] callback])`*
+##### `$unwatch([[name, ] callback])`
 
 ## Example
 ```js
