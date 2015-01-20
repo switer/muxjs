@@ -58,10 +58,14 @@ assert.equal(author.name, 'switer')
 
 Return the initial observed property object for this mux instance:
 ```js
-var person = new Mux({
-    name: 'mux'
+var Person = Mux.extend({
+    props: function () {
+        return {
+            name: 'mux'
+        }
+    }
 })
-assert.equal(person.name, 'mux')
+assert.equal((new person).name, 'mux')
 ```
 
 ### Instance Methods
