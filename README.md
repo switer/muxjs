@@ -1,11 +1,14 @@
-mux
+![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/120) Muxjs
 ===========
-Mobile webapp data model build with flux.
-
-![logo](http://switer.qiniudn.com/mux-verti.png?imageView/2/w/120)
-
 [![build](https://travis-ci.org/switer/muxjs.svg?branch=master)](https://travis-ci.org/switer/muxjs)
-[![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=develop)](https://coveralls.io/r/switer/muxjs?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=develop)](https://coveralls.io/r/switer/muxjs)
+
+Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your fine code and describe it as below:
+> if this condition and this other condition are met, then this value should be 'x'.
+
+So,  `vars` of conditions are state, and `condition` is transition, and `'x'` is transpositional state. Using **Muxjs**, you can track  `vars` changing and transition's result `x`  changing by
+subscribing their **change event**.
+
 
 ## browser support
 ![browser support](https://ci.testling.com/switer/muxjs.png)
@@ -20,6 +23,10 @@ Mobile webapp data model build with flux.
 npm install muxjs --save
 ```
 ## Usage
+
+## API
+
+## Example
 ```js
 var Comment = Mux.extend({
     props: function () {
@@ -54,7 +61,3 @@ comment.replyUsers.push({
     content: 'Cool'
 })
 ```
-
-## API
-
-## Example
