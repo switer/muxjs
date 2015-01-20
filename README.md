@@ -10,10 +10,11 @@ So,  *vars* of conditions are state, and *condition* is transition, and *'x'* is
 subscribing their **change event**.
 
 ![Case Diagram](http://switer.qiniudn.com/muxjs.png)
-Left of diagram is a app's **view-controller** with 5 state (circle), and state 3 state **transition logic** (rhombus).
-Right of disgram is an **UI Page** with 4 parts, each part is depend on state or state-transition.
+
+`Left` of diagram is a app's **view-controller** with 5 state (circle), and state 3 state **transition logic** (rhombus).
+`Right` of disgram is an **UI Page** with 4 parts, each part is depend on state or state-transition.
 If state is trackable, then binding specified DOM opertions to state changing, 
-finally it implement the **data to dom binding**. It's usefull, all right?
+finally it implement the **data to DOM binding**. It's usefull, all right?
 
 
 ## browser support
