@@ -29,14 +29,28 @@ npm install muxjs --save
 #### *`Mux(props)`*
 It is a constructor function that allows you to create Mux instances.
 *`props`* are those observed properties with default value.
+
 ```js
 var author = new Mux({
     name: 'switer'
 })
 ```
+equal to:
+
+```js
+var Person = Mux.extend({
+    props: function () {
+        return {
+            name: 'switer'
+        }
+    }
+})
+var author = Person()
+```
 
 #### *`Mux.extend(options)`*
-Create a "subclass" of the base Mux constructor.
+Create a "subclass" of the base Mux constructor. *`options`* see: [Instance Options](#instance-options)
+
 ```js
 var Person = Mux.extend({
     props: function () {
@@ -57,6 +71,7 @@ assert.equal(author.name, 'switer')
 - Type: ` Function`
 
 Return the initial observed property object for this mux instance:
+
 ```js
 var Person = Mux.extend({
     props: function () {
@@ -68,8 +83,20 @@ var Person = Mux.extend({
 assert.equal((new person).name, 'mux')
 ```
 
-### Instance Methods
+#### *`computed`*
 
+### Instance Methods
+#### *`$set([keyPath, value] | [props] )`*
+
+#### *`$get(propname)`*
+
+#### *`$add([propname [, defaultValue]] | [propnameArray] | [propsObj] )`*
+
+#### *`$computed([propname, deps, fn] | [computedPropsObj])`*
+
+#### *`$watch([name, ] callback)`*
+
+#### *`$unwatch([[name, ] callback])`*
 
 ## Example
 ```js
@@ -78,11 +105,11 @@ var Comment = Mux.extend({
         return {
             title: 'states model',
             author: 'switer',
-            content: 'Mobile webapp data model build with flux.',
+            content: 'Tracking app state using Muxjs.',
             replyUsers: [{
                 author: 'guankaishe',
-                id: 'xxxxxxxx',
-                content: 'awesome !'
+                id: 'xx-xxx-xxx',
+                content: 'switer/muxjs'
             }]
         }
     },
@@ -102,7 +129,7 @@ comment.$watch('replies', function (next, pre) {
 })
 comment.replyUsers.push({
     author: 'guankaishe',
-    id: 'xxxxxxxx',
+    id: 'xx-xxx-xxx',
     content: 'Cool'
 })
 ```
