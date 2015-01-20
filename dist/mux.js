@@ -1,4 +1,9 @@
-/*** Mux.js v0.0.0* (c) 2015 guankaishe* Released under the MIT License.*/(function webpackUniversalModuleDefinition(root, factory) {
+/**
+* Mux.js v0.0.0
+* (c) 2014 guankaishe
+* Released under the MIT License.
+*/
+(function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)

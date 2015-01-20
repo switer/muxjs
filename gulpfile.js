@@ -4,11 +4,17 @@ var uglify = require('gulp-uglifyjs')
 var header = require('gulp-header')
 var meta = require('./package.json')
 
-var banner = ['/**' + 
-              '* Mux.js v${version}' + 
-              '* (c) 2015 ${author}' + 
-              '* Released under the ${license} License.' + 
-              '*/'].join('\n')
+var banner = ['/**',
+              '* Mux.js v${version}',
+              '* (c) 2014 ${author}',
+              '* Released under the ${license} License.',
+              '*/',
+              ''].join('\n')
+var bannerVars = { 
+        version : meta.version,
+        author: 'guankaishe',
+        license: 'MIT'
+    }
 
 gulp.task('default', function() {
     return gulp.src('index.js')
@@ -19,15 +25,12 @@ gulp.task('default', function() {
                 filename: 'mux.js'
             }
         }))
-        .pipe(header(banner, { 
-            version : meta.version,
-            author: 'guankaishe',
-            license: 'MIT'
-        }))
+        .pipe(header(banner, bannerVars))
         .pipe(gulp.dest('dist/'))
         .pipe(uglify('mux.min.js', {
             mangle: true,
             compress: true
         }))
+        .pipe(header(banner, bannerVars))
         .pipe(gulp.dest('dist/'))
 });
