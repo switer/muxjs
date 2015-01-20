@@ -3,7 +3,7 @@
 [![build](https://travis-ci.org/switer/muxjs.svg?branch=master)](https://travis-ci.org/switer/muxjs)
 [![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=develop)](https://coveralls.io/r/switer/muxjs)
 
-Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your fine code and describe it as below:
+Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your look back code and find some logic are described as below:
 > if this condition and this other condition are met, then this value should be 'x'.
 
 So,  `vars` of conditions are state, and `condition` is transition, and `'x'` is transpositional state. Using **Muxjs**, you can track  `vars` changing and transition's result `'x'`  changing by
