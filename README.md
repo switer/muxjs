@@ -29,6 +29,19 @@ npm install muxjs --save
 ```
 
 ## API Reference
+- **[Gloabal API](#global-api)**
+    - [Mux(props)](#muxprops)
+    - [Mux.extend(options)](#muxextendoptions)
+- **[Instance Options](#instance-options)**
+    - [props](#props)
+    - [computed](#computed)
+- **[Instance Methods](#instance-methods)**
+    - [$set(\[keyPath, value\] | props )](#setkeypath-value--props-)
+    - [$get(propname)](#computed)
+    - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj )](#addpropname--defaultvalue--propnamearray--propsobj-)
+    - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
+    - [$watch(\[name, \] callback)](#watchname--callback)
+    - [$unwatch(\[\[name, \] callback\])](#unwatchname--callback)
 
 ### Global API
 ##### `Mux(props)`
@@ -99,12 +112,10 @@ assert.equal((new person).name, 'mux')
 - **props** `Object` *[optional]* data structure as below:  
     
     ```js
-    {
-        "propertyName": propertyValue
-    }
+    { "propertyName | keyPath": propertyValue }
     ```
 
-Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without include *[]* and *.* )
+Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without includes *"[", "]", "."* )
 ```js
 var list = new Mux({
     items: [{name: '1'}]
