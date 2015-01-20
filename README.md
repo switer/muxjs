@@ -22,7 +22,49 @@ subscribing their **change event**.
 ```bash
 npm install muxjs --save
 ```
-## Usage
+
+## API Reference
+
+### Mux Constructor and Class
+#### *`Mux`*
+It is a constructor function that allows you to create Mux instances.
+```js
+var author = new Mux({
+    name: 'switer'
+})
+```
+
+#### *`Mux.extend()`*
+Create a “subclass” of the base Mux constructor
+```js
+var Person = Mux.extend({
+    profession: 'programer',
+    name: ''
+})
+var author = new Person({
+    name: 'switer'
+})
+assert.equal(author.profession, 'programer')
+assert.equal(author.name, 'switer')
+```
+
+### Instance Options
+#### *`props`*
+
+- Type: ` Function`
+
+Return the initial observed property object for this mux instance:
+```js
+var person = new Mux({
+    name: 'mux'
+})
+assert.equal(person.name, 'mux')
+```
+
+### Instance Methods
+
+
+## Example
 ```js
 var Comment = Mux.extend({
     props: function () {
@@ -57,7 +99,3 @@ comment.replyUsers.push({
     content: 'Cool'
 })
 ```
-
-## API
-
-## Example
