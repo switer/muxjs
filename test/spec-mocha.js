@@ -25,12 +25,25 @@ module.exports = function (Mux, assert) {
 
     describe('contructor', function () {
         var person = new Mux({
-            name: 'switer',
-            github: 'https://github.com/switer'
+            props: function () {
+                return {
+                    name: 'switer',
+                    github: 'https://github.com/switer'
+                }
+            },
+            computed: {
+                nameLength: {
+                    deps: ['name'],
+                    fn: function () {
+                        return this.name.length
+                    }
+                }
+            }
         })
-        it('Instance with properties correctly', function () {
+        it('Instance correctly', function () {
             assert.equal(person['name'], 'switer')
             assert.equal(person.github, 'https://github.com/switer')
+            assert.equal(person['nameLength'], 6)
         })
     })
     describe('props', function () {

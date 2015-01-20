@@ -36,39 +36,37 @@ npm install muxjs --save
     - [props](#props)
     - [computed](#computed)
 - **[Instance Methods](#instance-methods)**
-    - [$set(\[keyPath, value\] | props )](#setkeypath-value--props-)
+    - [$set(\[keyPath, value\] | props)](#setkeypath-value--props-)
     - [$get(propname)](#computed)
-    - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj )](#addpropname--defaultvalue--propnamearray--propsobj-)
+    - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj-)
     - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
     - [$watch(\[name, \] callback)](#watchname--callback)
     - [$unwatch(\[\[name, \] callback\])](#unwatchname--callback)
 
 ### Global API
-##### `Mux(props)`
-It is a constructor function that allows you to create Mux instances.
-*`props`* are those observed properties with default value.
+##### `Mux(options)`
+It is a constructor function that allows you to create Mux instance.*`options`* see: [Instance Options](#instance-options).
 
 ```js
 var author = new Mux({
-    name: 'switer'
-})
-```
-Equal to:
-
-```js
-var Person = Mux.extend({
     props: function () {
-        return {
-            name: 'switer'
+        return name 
+    },
+    computed: {
+        fistName: {
+            deps: ['name'],
+            fn: function () {
+                return this.name.split(' ')[0]
+            }
         }
     }
 })
-var author = Person()
 ```
 
 ##### `Mux.extend(options)`
+- Return: `Function` Class
 Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Options](#instance-options).
-*Class* could instance with param `propsObj` which will set values to those observered properties of the instance.  
+*Class* can instance with param `propsObj` which will set values to those observered properties of the instance. 
 
 ```js
 var Person = Mux.extend({
@@ -105,7 +103,7 @@ assert.equal((new person).name, 'mux')
 - Type: ` Object`
 
 ### Instance Methods
-##### `$set([keyPath, value] | props )`
+##### `$set([keyPath, value] | props)`
 - **keyPath** `String` property path , such as:  *"items[0].name"*
 - **value** *[optional]*
 - *or*
@@ -115,7 +113,7 @@ assert.equal((new person).name, 'mux')
     { "propertyName | keyPath": propertyValue }
     ```
 
-Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without includes *"[", "]", "."* )
+Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without contains *"[", "]", "."* )
 ```js
 var list = new Mux({
     items: [{name: '1'}]
@@ -124,9 +122,21 @@ list.$set('items[0].name', '')
 ```
 
 ##### `$get(propname)`
-- **propname** `String`
+- **propname** `String` only propertyname not keyPath (without contains "[", "]", ".")
+Get property value. It's equal to using "." or "[]" to access value except computed properties.
+Using "." or "[]" to access computed property's value will get a cached result, so you can use "$get()"
+to recompute the property's value whithout cache.
 
-##### `$add([propname [, defaultValue]] | propnameArray | propsObj )`
+```js
+new Mux({
+    
+}, {
+    
+})
+.get
+```
+
+##### `$add([propname [, defaultValue]] | propnameArray | propsObj)`
 - **propname** `String` 
 - **defaultValue** *[optional]*
 - *or*

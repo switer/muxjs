@@ -83,11 +83,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @public
 	 */
 	function Mux(options) {
-	    Ctor.call(this, {
-	        props: function () {
-	            return options
-	        }
-	    })
+	    Ctor.call(this, options)
 	}
 
 	/**
@@ -103,8 +99,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param conf <Object>
 	 */
 	Mux.config = function (conf) {
-	    if (conf.warn == false) info.disable()
-	    if (conf.warn == true) info.enable()
+	    if (conf.warn === false) info.disable()
+	    else info.enable()
 	}
 
 	/**
@@ -131,7 +127,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var getter = options.props
 	    var observedDefOptions = {}
 	    var computedDefOptions = {}
-	    var defOptions = {}
 
 	    var _initialProps = getter ? getter.call(this) : {}
 	    var _computedProps = options.computed || {}
@@ -319,13 +314,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$setMulti(keyMap) {
 
-	        if (!keyMap || util.type(keyMap) != 'object') return
-	        var pubs = []
-	        var hasDiff = false
-	        var diff
-	        var deps = Object.keys(keyMap)
+	        if (!keyMap || util.type(keyMap) != 'object') {return}
 	        var willComputedProps = []
 	        var preProps = util.merge({}, model)
+	        var hasDiff = false
+	        var diff
 
 	        for (var key in keyMap) {
 	            if (keyMap.hasOwnProperty(key)) {
@@ -344,7 +337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    emitter.emit('change:' + propname, diff.next, diff.pre)
 
 	                    // for batching emit, if deps has multiple change in once, only trigger one times 
-	                    ;(_computedDepsMapping[propname] || []).reduce(function (pv, cv, index) {
+	                    ;(_computedDepsMapping[propname] || []).reduce(function (pv, cv) {
 	                        if (!~pv.indexOf(cv)) pv.push(cv)
 	                        return pv
 	                    }, willComputedProps)
@@ -580,7 +573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function( /*[key, ] [callback] */ ) {
 	                var len = arguments.length
-	                var key, callback
+	                var key
 
 	                if (len >= 2) {
 	                    key = 'change:' + arguments[0]
