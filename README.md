@@ -26,20 +26,23 @@ npm install muxjs --save
 ## API Reference
 
 ### Mux Constructor and Class
-#### *`Mux`*
+#### *`Mux(props)`*
 It is a constructor function that allows you to create Mux instances.
+*`props`* are those observed properties with default value.
 ```js
 var author = new Mux({
     name: 'switer'
 })
 ```
 
-#### *`Mux.extend()`*
-Create a “subclass” of the base Mux constructor
+#### *`Mux.extend(options)`*
+Create a "subclass" of the base Mux constructor.
 ```js
 var Person = Mux.extend({
-    profession: 'programer',
-    name: ''
+    props: function () {
+        profession: 'programer',
+        name: ''
+    }
 })
 var author = new Person({
     name: 'switer'

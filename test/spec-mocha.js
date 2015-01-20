@@ -21,12 +21,18 @@ module.exports = function (Mux, assert) {
             }
         }
     })
-    var person = new Mux({
-        name: 'switer',
-        github: 'https://github.com/switer'
-    })
     var comment = new Comment()
 
+    describe('contructor', function () {
+        var person = new Mux({
+            name: 'switer',
+            github: 'https://github.com/switer'
+        })
+        it('Instance with properties correctly', function () {
+            assert.equal(person['name'], 'switer')
+            assert.equal(person.github, 'https://github.com/switer')
+        })
+    })
     describe('props', function () {
         it('Default property\'s value is correct', function () {
             assert.equal(comment.title, 'comment to me')
@@ -240,7 +246,7 @@ module.exports = function (Mux, assert) {
         })
     })
     describe('$get', function () {
-        it('get property value corrently', function () {
+        it('get property value correctly', function () {
             comment.$unwatch()
             comment.title = 'mux.js'
             comment.replyUsers = [1,2,3,4,5]
