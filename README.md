@@ -41,7 +41,7 @@ npm install muxjs --save
     - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj)
     - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
     - [$watch(\[name, \] callback)](#watchname--callback)
-    - [$unwatch(\[\[name, \] callback\])](#unwatchname--callback)
+    - [$unwatch(\[name, \] \[callback\])](#unwatchname--callback)
 
 ### Global API
 ##### `Mux(options)`
@@ -115,16 +115,51 @@ assert.equal((new person).name, 'mux')
 
 ##### `computed`
 - Type: ` Object`
+- Options:
+    - **deps** `Array` property dependencies
+    - **fn** `Function` Compute function , using as a getter
+
+Computed properties definition option. `"fn"` will be called if one of dependencies has change, then will emit a change event if `"fn"` returns result has change.  
+
+```js
+var mux = new Mux({
+    props: {
+        items: [1,2,3]
+    },
+    computed: {
+        count: {
+            deps: ['items'],
+            fn: function () {
+                return this.items.length
+            }
+        }
+    }
+})
+assert.equal(mux.cout, 3)
+```
+Watch computed property changes:
+
+```js
+mux.$watch('count', function (next, pre) {
+    assert.equal(next, 3)
+    assert.equal(next, 4)
+})
+mux.items.push(4)
+assert.equal(mux.count, 4)
+```
+
 
 ### Instance Methods
 ##### `$set([keyPath, value] | props)`
-- **keyPath** `String` property path , such as:  *"items[0].name"*
-- **value** *[optional]*
-- *or*
-- **props** `Object` *[optional]* data structure as below:
+* Params:
+    - **keyPath** `String` property path , such as:  *"items[0].name"*
+    - **value** *[optional]*
+    - *or*
+    - **props** `Object` *[optional]* data structure as below:
     ```js
     { "propertyName | keyPath": propertyValue }
     ```
+* Return: **this**
 
 Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). 
 **Notice:** PropertyName shouldn't a keyPath (name string without contains *"[", "]", "."* )
@@ -137,99 +172,128 @@ list.$set('items[0].name', '')
 ```
 
 ##### `$get(propname)`
-- **propname** `String` only propertyname not keyPath (without contains "[", "]", ".")
+* Params:
+    - **propname** `String` only propertyname not keyPath (without contains "[", "]", ".")
+* Return: *value*
 
 Get property value. It's equal to using "." or "[]" to access value except computed properties.
 
 ```js
-var post = new Mux({
+var mux = new Mux({
     props: {
-        data: {
-            title: 'Mux',
-            replyUsers: [{
-                author: ''
-            }]
-        }
-    },
-    computed: {
-        firstReplyUser: {
-            deps: ['data'],
-            fn: function () {
-                return this.replyUsers[0].author
-            }
-        }
-    } 
+        replyUsers: [{
+            author: 'switer'
+        }]
+    }
 })
-assert.equal(post.data.title, 'Mux doc')
-assert.equal(post.$get('post.data.title', 'Mux doc'))
+assert.equal(mux.$get('replyUses[0].author', 'switer'))
 ```
 
-Using "." or "[]" to access computed property's value will get a cached result, so you can use "$get()"
-to recompute the property's value whithout cache.
+**Notice:** Using "." or "[]" to access computed property's value will get a cached result, 
+so you can use "$get()" to recompute the property's value whithout cache.
 
 ```js
-post.$set('data.replyUses[0].author', 'switer')
-assert.equal(post.$get('data.replyUses[0].author', 'switer'))
+// define a computed property which use to get the first user of replyUsers
+mux.$computed(firstReplyUser, ['replyUsers'], function () {
+    return this.replyUsers[0].author
+})
 
 var users = [{
     author: 'switer'
 }]
-post.$set('data.replyUses', users)
-assert.equal(post.firstReplyUser, 'switer'))
-// modify selft
-user[0].author = 'guankaishe'
+
+mux.$set('replyUsers', users)
+
+user[0].author = 'guankaishe' // modify selft
+
 assert.equal(post.firstReplyUser, 'switer'))
 assert.equal(post.$get('firstReplyUser'), 'guankaishe'))
 ```
 
 ##### `$add([propname [, defaultValue]] | propnameArray | propsObj)`
-- **propname** `String` 
-- **defaultValue** *[optional]*
-- *or*
-- **propnameArray** `Array` 
-- *or* 
-- **propsObj** `Object` 
+* Params:
+    - **propname** `String` 
+    - **defaultValue** *[optional]*
+    - *or*
+    - **propnameArray** `Array` 
+    - *or* 
+    - **propsObj** `Object` 
+* Return: **this**
 
-
+Define an observerable property or multiple properties.
+```js
+mux.$add('name', 'switer')
+// or
+mux.$add(['name']) // without default value
+// or
+mux.$add({ 'name': 'switer' })
+```
 
 ##### `$computed([propname, deps, fn] | computedPropsObj)`
+* Params:
+    - **propname** `String` property name
+    - **deps** `Array` Property's dependencies
+    - **fn** `Function` Getter function
+    - *or*
+    - **computedPropsObj** `Object` 
+* Return: **this**
 
-##### `$watch([name, ] callback)`
+Define a computed property. *deps* and *fn* is necessary.
+*computedPropsObj* is using to define multiple computed properties in once,
+each key of *computedPropsObj* is property's name and value is a object contains "deps", "fn".
+Usage as below: 
 
-##### `$unwatch([[name, ] callback])`
-
-## Example
 ```js
-var Comment = Mux.extend({
-    props: function () {
-        return {
-            title: 'states model',
-            author: 'switer',
-            content: 'Tracking app state using Muxjs.',
-            replyUsers: [{
-                author: 'guankaishe',
-                id: 'xx-xxx-xxx',
-                content: 'switer/muxjs'
-            }]
-        }
-    },
-    computed: {
-        replies: {
-            deps: ['replyUsers'],
-            fn: function () {
-                return this.replyUser.length
-            }
-        }
-    }
+// before define computed
+assert.equal(mux.commentCount, undefined)
+mux.$computed('commentCount', ['comments'], function () {
+    return this.comments.length
 })
+// after define computed
+assert.equal(mux.commentCount, 1)
+```
 
-var comment = new Comment()
-comment.$watch('replies', function (next, pre) {
-    assert.equal(this.replies, 2)
+##### `$watch([propname, ] callback)`
+* Params:
+    - **propname** `String` *[optional]*
+    - **callback** `Function`
+* Return: `Function` unwatch handler
+
+Subscribe property or computed property changes of the Mux instance.
+
+```js
+var unwatch = mux.$watch('title', function () {
+    // callback when title has change
 })
-comment.replyUsers.push({
-    author: 'guankaishe',
-    id: 'xx-xxx-xxx',
-    content: 'Cool'
+unwatch() // cancel subscribe
+```
+if *propname* is not passed, will watch all property or computed property changes:
+
+```js
+mux.$watch(function () {
+    // callback when title has change
 })
 ```
+
+
+##### `$unwatch([propname, ] [callback])`
+* Params: 
+    - **propname** `String` *[optional]*
+    - **callback** `Function` *[optional]*
+* Return: **this**
+
+Unsubscribe property or computed property changes of the Mux instance.
+```js
+// subscribe
+mux.$watch('name', handler)
+// unsubscribe
+mux.$unwatch('name', handler)
+// unsubscribe all of specified propertyname
+mux.$unwatch('name')
+// unsubscribe all of the Mux instance
+mux.$unwatch()
+```
+
+## License
+
+MIT
