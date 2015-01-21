@@ -192,7 +192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _add2ComputedDepsMapping(ck, dep)
 	        })
 	        util.patch(_computedMetas, ck, {})
-	        _computedMetas[ck].current = (fn || NOOP).call(model)
+	        _computedMetas[ck].current = (fn || NOOP).call(model, model)
 
 	        computedDefOptions[ck] = {
 	            enumerable: true,
@@ -251,7 +251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util.patch(_computedMetas, ck, {})
 	            // value swap
 	            _computedMetas[ck].pre = _computedMetas[ck].current
-	            _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model)
+	            _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
 	            // emit and passing (next-value, previous-value) 
 	            emitter.emit('change:'+ ck, _computedMetas[ck].current, _computedMetas[ck].pre)
 	        })
@@ -364,7 +364,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util.patch(_computedMetas, ck, {})
 	            // next --> pre, last --> next swap
 	            var pre = _computedMetas[ck].pre = _computedMetas[ck].current
-	            var next = _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model)
+	            var next = _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
 	            if (util.diff(next, pre)) emitter.emit('change:' + ck, next, pre)
 	        })
 	        // emit those wildcard listener's callbacks
@@ -374,10 +374,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  create a prop observer
 	     *  @param prop <String> property name
+	     *  @param value property value
 	     */
-	    function _$add(prop) {
+	    function _$add(prop, value) {
+	        var len = arguments.length
 	        expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
-	        if (~_observableKeys.indexOf(prop)) return
+
+	        if (~_observableKeys.indexOf(prop)) {
+	            // If value is specified, reset value
+	            if (len > 1) _$set(prop, value)
+	            return
+	        }
+	        _props[prop] = value
 	        _observableKeys.push(prop)
 	        Object.defineProperty(model, prop, {
 	            enumerable: true,
@@ -391,7 +399,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
-	     *  create observers for multiple props
+	     *  create observers for multiple props without set/reset value
 	     *  @param props <Array> properties name list
 	     */
 	    function _$addMulti(props) {
@@ -410,6 +418,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	        })
 	        // define properties in batch
 	        Object.defineProperties(model, defOptions)
+	    }
+	    /**
+	     *  create observers for multiple props and set/reset with specified value
+	     *  @param propsObj <Object> properties map
+	     */
+	    function _$addMultiObject(propsObj) {
+	        var defOptions = {}
+	        var resetProps
+
+	        util.objEach(propsObj, function (prop, pv) {
+	            pv = propsObj[prop]
+	            expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
+
+	            // already exist in observers
+	            if (~_observableKeys.indexOf(prop)) {
+	                // batch to reset property's value
+	                !resetProps && (resetProps = {})
+	                resetProps[prop] = pv
+	                return
+	            }
+	            
+	            _props[prop] = pv
+	            _observableKeys.push(prop)
+
+	            defOptions[prop] = {
+	                enumerable: true,
+	                get: function() {
+	                    return _props[prop]
+	                }
+	            }
+	        })
+	        // define properties in batch
+	        Object.defineProperties(model, defOptions)
+	        resetProps && _$setMulti(resetProps)
 	    }
 
 	    /**
@@ -431,6 +473,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  property is exist
 	         */
 	        if (~_computedKeys.indexOf(propname)) return
+	        _computedKeys.push(propname)
 	        _computedProps[propname] = {
 	            'deps': deps, 
 	            'fn': fn
@@ -446,7 +489,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  define getter
 	         */
 	        util.patch(_computedMetas, propname, {})
-	        _computedMetas[propname].current = (fn || NOOP).call(model)
+	        _computedMetas[propname].current = (fn || NOOP).call(model, model)
 
 	        Object.defineProperty(model, propname, {
 	            enumerable: true,
@@ -466,17 +509,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        "$add": {
 	            enumerable: false,
-	            value: function(/* propname1 [, propname2, ..., propname3 ] */) {
-	                var len = arguments.length
-	                if (len > 1) {
-	                    var args = new Array(len)
-	                    while(len) {
-	                        args[len] = arguments[--len]
-	                    }
-	                    _$addMulti(args)
-	                } else if (len == 1) {
-	                    _$add(arguments[0])
+	            value: function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
+	                var first = arguments[0]
+	                var firstType = util.type(first)
+
+	                if (firstType == 'string') {
+	                    // with specified value or not
+	                    arguments.length > 1 ? _$add(arguments[0], arguments[1]) : _$add(arguments[0])
+	                } else if (firstType == 'array') {
+	                    // observe properties without value
+	                    _$addMulti(first)
+	                } else if (firstType == 'object') {
+	                    // observe properties with value, if key already exist, reset value only
+	                    _$addMultiObject(first)
 	                }
+
+	                return this
 	            }
 	        },
 	        /**
@@ -501,6 +549,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                } else {
 	                    info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
 	                }
+
+	                return this
 	            }
 	        },
 	        /**
@@ -513,7 +563,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function( /*[kp, value] | [kpMap]*/ ) {
 	                var len = arguments.length
-	                if (len >= 2) {
+	                if (len >= 2 || (len == 1 && util.type(arguments[0]) == 'string')) {
 	                    _$set(arguments[0], arguments[1])
 	                } else if (len == 1 && util.type(arguments[0]) == 'object') {
 	                    _$setMulti(arguments[0])
@@ -536,8 +586,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            value: function(propname) {
 	                if (~_observableKeys.indexOf(propname)) 
 	                    return _props[propname]
-	                else if (~_computedKeys.indexOf(propname)) 
-	                    return (_computedProps[propname].fn || NOOP).call(model)
+	                else if (~_computedKeys.indexOf(propname)) {
+	                    return (_computedProps[propname].fn || NOOP).call(model, model)
+	                }
 	            }
 	        },
 	        /**
@@ -875,6 +926,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = {
 	    type: function (obj) {
 	        return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase()
+	    },
+	    objEach: function (obj, fn) {
+	        for(var key in obj) {
+	            if (obj.hasOwnProperty(key)) {
+	                fn(key, obj[key])
+	            }
+	        }
 	    },
 	    patch: function (obj, prop, defValue) {
 	        !obj[prop] && (obj[prop] = defValue)
