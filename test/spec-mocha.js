@@ -295,18 +295,29 @@ module.exports = function (Mux, assert) {
         })
     })
     describe('$add', function () {
-        it('observe a property', function () {
+        it('observe a property', function (done) {
             comment.$unwatch()
             comment.$add('new')
             comment.$watch('new', function (next, pre) {
                 assert.equal(next, 'new property')
+                done()
             })
             comment.$set('new', 'new property')
             assert.equal(comment.new, 'new property')
         })
-        it('observe multiple properties', function (done) {
+        it('observe a property with value', function (done) {
             comment.$unwatch()
-            comment.$add('prop1', 'prop2')
+            comment.$add('withvalue', 'value')
+            assert.equal(comment.withvalue, 'value')
+            comment.$watch('withvalue', function (next) {
+                assert.equal(next, 'value2')
+                done()
+            })
+            comment.$add('withvalue', 'value2')
+        })
+        it('observe multiple properties array', function (done) {
+            comment.$unwatch()
+            comment.$add(['prop1', 'prop2'])
             comment.$watch('prop1', function (next, pre) {
                 assert.equal(next, 'new property 1')
             })
@@ -318,6 +329,20 @@ module.exports = function (Mux, assert) {
             comment.$set('prop2', 'new property 2')
             assert.equal(comment['prop1'], 'new property 1')
             assert.equal(comment['prop2'], 'new property 2')
+        })
+        it('observe multiple properties object', function (done) {
+            comment.$unwatch()
+            comment.$add({
+                prop3: 'prop3'
+            })
+            assert.equal(comment.prop3, 'prop3')
+            comment.$watch('prop3', function (next) {
+                assert.equal(next, 'prop4')
+                done()
+            })
+            comment.$add({
+                prop3: 'prop4'
+            })
         })
     })
     describe('$computed', function (t) {
