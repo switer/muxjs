@@ -50,10 +50,10 @@ It is a constructor function that allows you to create Mux instance.*`options`* 
 ```js
 var author = new Mux({
     props: function () {
-        return name 
+        return 'firstName lastName' 
     },
     computed: {
-        fistName: {
+        firstName: {
             deps: ['name'],
             fn: function () {
                 return this.name.split(' ')[0]
@@ -61,11 +61,14 @@ var author = new Mux({
         }
     }
 })
+assert.equal(author.firstName, 'firstName')
 ```
 
 ##### `Mux.extend(options)`
 - Return: `Function` Class
+
 Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Options](#instance-options).
+
 *Class* can instance with param `propsObj` which will set values to those observered properties of the instance. 
 
 ```js
@@ -84,9 +87,10 @@ assert.equal(author.name, 'switer')
 
 ### Instance Options
 ##### `props`
-- Type: ` Function`
+- Type: ` Function` | `Object`
 
-Return the initial observed property object for this mux instance:
+Return the initial observed property object for this mux instance.Recommend to using function which return 
+a object if you don't want to share **props** option's object in each instance:
 
 ```js
 var Person = Mux.extend({
@@ -94,6 +98,16 @@ var Person = Mux.extend({
         return {
             name: 'mux'
         }
+    }
+})
+assert.equal((new person).name, 'mux')
+```
+Or **props** option could be an object:
+
+```js
+var Person = new Mux({
+    props: {
+        name: 'mux'
     }
 })
 assert.equal((new person).name, 'mux')
@@ -113,7 +127,9 @@ assert.equal((new person).name, 'mux')
     { "propertyName | keyPath": propertyValue }
     ```
 
-Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). PropertyName shouldn't a keyPath (name string without contains *"[", "]", "."* )
+Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). 
+**Notice:** PropertyName shouldn't a keyPath (name string without contains *"[", "]", "."* )
+
 ```js
 var list = new Mux({
     items: [{name: '1'}]
@@ -123,17 +139,48 @@ list.$set('items[0].name', '')
 
 ##### `$get(propname)`
 - **propname** `String` only propertyname not keyPath (without contains "[", "]", ".")
+
 Get property value. It's equal to using "." or "[]" to access value except computed properties.
+
+```js
+var post = new Mux({
+    props: {
+        data: {
+            title: 'Mux',
+            replyUsers: [{
+                author: ''
+            }]
+        }
+    },
+    computed: {
+        firstReplyUser: {
+            deps: ['data'],
+            fn: function () {
+                return this.replyUsers[0].author
+            }
+        }
+    } 
+})
+assert.equal(post.data.title, 'Mux doc')
+assert.equal(post.$get('post.data.title', 'Mux doc'))
+```
+
 Using "." or "[]" to access computed property's value will get a cached result, so you can use "$get()"
 to recompute the property's value whithout cache.
 
 ```js
-new Mux({
-    
-}, {
-    
-})
-.get
+post.$set('data.replyUses[0].author', 'switer')
+assert.equal(post.$get('data.replyUses[0].author', 'switer'))
+
+var users = [{
+    author: 'switer'
+}]
+post.$set('data.replyUses', users)
+assert.equal(post.firstReplyUser, 'switer'))
+// modify selft
+user[0].author = 'guankaishe'
+assert.equal(post.firstReplyUser, 'switer'))
+assert.equal(post.$get('firstReplyUser'), 'guankaishe'))
 ```
 
 ##### `$add([propname [, defaultValue]] | propnameArray | propsObj)`
@@ -143,6 +190,8 @@ new Mux({
 - **propnameArray** `Array` 
 - *or* 
 - **propsObj** `Object` 
+
+
 
 ##### `$computed([propname, deps, fn] | computedPropsObj)`
 

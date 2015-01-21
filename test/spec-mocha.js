@@ -270,12 +270,28 @@ module.exports = function (Mux, assert) {
         })
     })
     describe('$get', function () {
-        it('get property value correctly', function () {
+        it('$get property value correctly', function () {
             comment.$unwatch()
             comment.title = 'mux.js'
             comment.replyUsers = [1,2,3,4,5]
             assert.equal(comment.$get('title'), 'mux.js')
             assert.equal(comment.$get('replies'), 5)
+        })
+        it('$get computed property', function () {
+            comment.$unwatch()
+            comment.replyUsers = [{author: ''}]
+            comment.$computed('first', ['replyUsers'], function () {
+                return this.replyUsers[0].author
+            })
+            comment.replyUsers = [{author: 'switer'}]
+            assert.equal(comment.first, 'switer')
+            assert.equal(comment.$get('first'), 'switer')
+
+            comment.replyUsers[0].author = 'switerX'
+            assert.equal(comment.first, 'switer')
+            assert.equal(comment.$get('first'), 'switerX')
+            comment.replyUsers = comment.replyUsers
+            assert.equal(comment.first, 'switerX')
         })
     })
     describe('$add', function () {
