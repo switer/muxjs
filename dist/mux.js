@@ -83,6 +83,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @public
 	 */
 	function Mux(options) {
+	    // static config checking
+	    staticOptionCheck(options)
 	    Ctor.call(this, options)
 	}
 
@@ -108,10 +110,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @private
 	 */
 	function MuxFactory(options) {
-
 	    // static config checking
-	    var getter = options.props
-	    getter && expect.type(getter, 'function')
+	    staticOptionCheck(options)
+
 	    return function (receiveProps) {
 	        Ctor.call(this, options, receiveProps)
 	    }
@@ -120,7 +121,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  Mux's model class, could instance with "new" operator or call it directly.
 	 *  @param receiveProps <Object> initial props set to model which will no trigger change event.
 	 */
-	function Ctor (options, receiveProps) {
+	function Ctor(options, receiveProps) {
 	    // if (!(this instanceof Ctor) && !(this instanceof Mux)) return new Ctor(receiveProps)
 	    var model = this
 	    var emitter = new Message(model) // EventEmitter of this model, context bind to model
@@ -128,7 +129,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var observedDefOptions = {}
 	    var computedDefOptions = {}
 
-	    var _initialProps = getter ? getter.call(this) : {}
+	    /**
+	     *  Get initial props from options
+	     */
+	    var _initialProps
+	    if (util.type(getter) == 'function') {
+	        _initialProps = getter()
+	    } else if (util.type(getter) == 'object') {
+	        _initialProps = getter
+	    } else {
+	        _initialProps = {}
+	    }
+
 	    var _computedProps = options.computed || {}
 	    var _observableKeys = Object.keys(_initialProps)
 	    var _computedKeys = Object.keys(_computedProps)
@@ -597,8 +609,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _$setMulti(receiveProps)
 
 	}
-
 	function NOOP() {}
+	/**
+	 *  Check option's keys type when Mux class instance
+	 *  if type is unvalid throw an error
+	 */
+	function staticOptionCheck(options) {
+	    if (!options) return
+	    var getter = options.props
+	    var computed = options.computed
+	    getter && expect.type(getter, ['function', 'object'])
+	    computed && expect.type(computed, ['object'])
+	}
 
 	module.exports = Mux
 
@@ -718,16 +740,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var util = __webpack_require__(7)
 
-	function expect (bool, msg) {
-	    if (!bool) throw new Error(msg || 'Unexpect error')
+	/**
+	 *  Expect condition is truely
+	 *  @param cnd <Boolean>
+	 *  @param msg <String> *optional*
+	 */
+	function expect(cnd, msg) {
+	    if (!cnd) throw new Error(msg || 'Unexpect error')
 	}
+	/**
+	 *  Expect obj should be type of/in "type"
+	 *  @param obj
+	 *  @param type <String> | <Array>
+	 *  @param msg <String> *optional*
+	 */
 	expect.type = function(obj, type, msg) {
-	    if (util.type(obj) != type) throw new Error(msg || 'Expect param\'s type be' + type + ' not ' + util.type(obj))
-	},
-	expect.exist = function(obj, msg) {
-	    if (obj == undefined) throw new Error(msg || 'Expect param not be undefined')
+	    
+	    var typeOfType = util.type(type)
+	    var typeOfObj = util.type(obj)
+
+	    if (typeOfType == 'string') {
+	        if (typeOfObj != type) throw new Error(msg || 'Expect param\'s type be ' + type + ' not ' + typeOfObj)
+	    } else if (typeOfType == 'array') {
+	        if (!type.some(function(t) {
+	            if (typeOfObj == t) return true
+	        })) throw new Error(msg || 'Unexpect param\'s type ' + typeOfObj + ', it should one of ' + type.join(','))
+	    }
 	}
 	module.exports = expect
+
 
 /***/ },
 /* 4 */
