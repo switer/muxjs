@@ -13,7 +13,7 @@ Let's look at the example case diagram of a stateful application.
 
 ![Case Diagram](http://switer.qiniudn.com/muxjs.png)
 
-`Left` of diagram is a app's **view-controller** with 5 state (circle), and state 3 state **transition logic** (rhombus).<br />
+`Left` of diagram is a app's **view-controller** with 5 state (circle), and 3 state **transition logic** (rhombus).<br />
 `Right` of disgram is an **UI Page** with 4 parts, each part depend on state or state-transition.
 If state is trackable, then binding specified DOM opertions to state changing, 
 finally it implement the **data to DOM binding**. It's usefull, all right?

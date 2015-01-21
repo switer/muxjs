@@ -40,11 +40,22 @@ module.exports = function (Mux, assert) {
                 }
             }
         })
-        it('Instance correctly', function () {
+        var another = new Mux({
+            props: {
+                name: 'guankaishe',
+                email: 'guankaishe@gmail.com'
+            }
+        })
+        it('Properties is correct when using Mux instance', function () {
             assert.equal(person['name'], 'switer')
             assert.equal(person.github, 'https://github.com/switer')
             assert.equal(person['nameLength'], 6)
         })
+        it('Properties is correct when using Mux instance and props is an object', function () {
+            assert.equal(another['name'], 'guankaishe')
+            assert.equal(another.email, 'guankaishe@gmail.com')
+        })
+
     })
     describe('props', function () {
         it('Default property\'s value is correct', function () {
