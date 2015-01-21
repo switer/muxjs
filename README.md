@@ -228,6 +228,8 @@ assert.equal(post.$get('firstReplyUser'), 'guankaishe'))
     - **propsObj** `Object` 
 * Return: **this**
 
+[ :back:  API Reference Navigation](#api-reference)
+
 Define an observerable property or multiple properties.
 ```js
 mux.$add('name', 'switer')
@@ -245,6 +247,8 @@ mux.$add({ 'name': 'switer' })
     - *or*
     - **computedPropsObj** `Object` 
 * Return: **this**
+
+[ :back:  API Reference Navigation](#api-reference)
 
 Define a computed property. *deps* and *fn* is necessary.
 *computedPropsObj* is using to define multiple computed properties in once,
@@ -266,6 +270,8 @@ assert.equal(mux.commentCount, 1)
     - **propname** `String` *[optional]*
     - **callback** `Function`
 * Return: `Function` unwatch handler
+
+[ :back:  API Reference Navigation](#api-reference)
 
 Subscribe property or computed property changes of the Mux instance.
 
@@ -289,6 +295,8 @@ mux.$watch(function () {
     - **propname** `String` *[optional]*
     - **callback** `Function` *[optional]*
 * Return: **this**
+
+[ :back:  API Reference Navigation](#api-reference)
 
 Unsubscribe property or computed property changes of the Mux instance.
 ```js
