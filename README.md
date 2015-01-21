@@ -36,9 +36,9 @@ npm install muxjs --save
     - [props](#props)
     - [computed](#computed)
 - **[Instance Methods](#instance-methods)**
-    - [$set(\[keyPath, value\] | props)](#setkeypath-value--props-)
+    - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
     - [$get(propname)](#computed)
-    - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj-)
+    - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj)
     - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
     - [$watch(\[name, \] callback)](#watchname--callback)
     - [$unwatch(\[\[name, \] callback\])](#unwatchname--callback)
@@ -102,7 +102,7 @@ var Person = Mux.extend({
 })
 assert.equal((new person).name, 'mux')
 ```
-Or **props** option could be an object:
+**props** option could be an object:
 
 ```js
 var Person = new Mux({
@@ -121,8 +121,7 @@ assert.equal((new person).name, 'mux')
 - **keyPath** `String` property path , such as:  *"items[0].name"*
 - **value** *[optional]*
 - *or*
-- **props** `Object` *[optional]* data structure as below:  
-    
+- **props** `Object` *[optional]* data structure as below:
     ```js
     { "propertyName | keyPath": propertyValue }
     ```
