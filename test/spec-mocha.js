@@ -46,6 +46,13 @@ module.exports = function (Mux, assert) {
                 email: 'guankaishe@gmail.com'
             }
         })
+        it('instance of Mux', function () {
+            assert(person instanceof Mux)
+            var Clazz = Mux.extend()
+            var ins = new Clazz()
+            assert(person instanceof Mux)
+            assert(ins instanceof Mux)
+        })
         it('Properties is correct when using Mux instance', function () {
             assert.equal(person['name'], 'switer')
             assert.equal(person.github, 'https://github.com/switer')
@@ -54,6 +61,16 @@ module.exports = function (Mux, assert) {
         it('Properties is correct when using Mux instance and props is an object', function () {
             assert.equal(another['name'], 'guankaishe')
             assert.equal(another.email, 'guankaishe@gmail.com')
+        })
+
+        it('Has instance methods', function (done) {
+            person.$unwatch()
+            person.$add('email', 'guankaishe@gmail.com')
+            person.$watch('email', function (next) {
+                assert.equal(next, 'none')
+                done()
+            })
+            person.$set('email', 'none')
         })
 
     })
