@@ -89,7 +89,7 @@ assert.equal(author.name, 'switer')
 ##### `props`
 - Type: ` Function` | `Object`
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Return the initial observed property object for this mux instance.Recommend to using function which return 
 a object if you don't want to share **props** option's object in each instance:
@@ -121,7 +121,7 @@ assert.equal((new person).name, 'mux')
     - **deps** `Array` property dependencies
     - **fn** `Function` Compute function , using as a getter
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Computed properties definition option. `"fn"` will be called if one of dependencies has change, then will emit a change event if `"fn"` returns result has change.  
 
@@ -165,7 +165,7 @@ assert.equal(mux.count, 4)
     ```
 * Return: **this**
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Set value to property by property's keyPath or propertyName, which could trigger change event when value change or value is an object reference (instanceof  Object). 
 **Notice:** PropertyName shouldn't a keyPath (name string without contains *"[", "]", "."* )
@@ -182,7 +182,7 @@ list.$set('items[0].name', '')
     - **propname** `String` only propertyname not keyPath (without contains "[", "]", ".")
 * Return: *value*
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Get property value. It's equal to using "." or "[]" to access value except computed properties.
 
@@ -228,7 +228,7 @@ assert.equal(post.$get('firstReplyUser'), 'guankaishe'))
     - **propsObj** `Object` 
 * Return: **this**
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Define an observerable property or multiple properties.
 ```js
@@ -248,7 +248,7 @@ mux.$add({ 'name': 'switer' })
     - **computedPropsObj** `Object` 
 * Return: **this**
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Define a computed property. *deps* and *fn* is necessary.
 *computedPropsObj* is using to define multiple computed properties in once,
@@ -271,7 +271,7 @@ assert.equal(mux.commentCount, 1)
     - **callback** `Function`
 * Return: `Function` unwatch handler
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Subscribe property or computed property changes of the Mux instance.
 
@@ -296,7 +296,7 @@ mux.$watch(function () {
     - **callback** `Function` *[optional]*
 * Return: **this**
 
-[ :back:  API Reference Navigation](#api-reference)
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Unsubscribe property or computed property changes of the Mux instance.
 ```js
