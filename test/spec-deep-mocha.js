@@ -8,6 +8,13 @@ module.exports = function (Mux, assert) {
             comments: [{title: 'hello'}, 1]
         }
     })
+    var vm2 = new Mux({
+        deep: true,
+        props: {
+            person: {}
+        }
+    })
+
     describe('[deep]', function () {
         it('change subproperty using $set',function (done) {
             vm.$unwatch()
@@ -58,6 +65,32 @@ module.exports = function (Mux, assert) {
                 done()
             })
             vm.$set('person.email', 'guankaishe@gmail.com')
+        })
+        it('move property',function (done) {
+            vm.$unwatch()
+            vm.$watch('person.comments', function (next, pre) {
+                assert.equal(next.length, vm.comments.length)
+                done()
+            })
+            vm.$set('person.comments', vm.comments)
+        })
+        it('move property to another instance',function (done) {
+            vm2.$unwatch()
+            var step1
+            vm2.$watch('person.comments', function (next, pre) {
+                assert.equal(next.length, vm2.person.comments.length)
+                step1 = true
+            })
+            vm.$watch('person.comments', function (next, pre) {
+                assert(false)
+            })
+            vm.$watch('comments', function (next, pre) {
+                assert.equal(next.length, 3)
+                step1 && done()
+            })
+            vm2.$set('person.comments', vm.comments)
+            vm2.person.comments.push('switer')
+            vm.comments.push(1)
         })
     })
 }

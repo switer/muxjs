@@ -23,7 +23,7 @@ module.exports = function (Mux, assert) {
     })
     var comment = new Comment()
 
-    describe('contructor', function () {
+    describe('[contructor]', function () {
         var person = new Mux({
             props: function () {
                 return {
@@ -74,7 +74,7 @@ module.exports = function (Mux, assert) {
         })
 
     })
-    describe('props', function () {
+    describe('[props]', function () {
         it('Default property\'s value is correct', function () {
             assert.equal(comment.title, 'comment to me')
         })
@@ -127,7 +127,7 @@ module.exports = function (Mux, assert) {
             comment.replyUsers.shift()
         })
     })
-    describe('computed', function () {
+    describe('[computed]', function () {
         it('Default replies is 0', function () {
             assert.equal(comment.replies, 0)
         })
