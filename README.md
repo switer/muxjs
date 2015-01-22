@@ -2,6 +2,7 @@
 ===========
 [![build](https://travis-ci.org/switer/muxjs.svg?branch=master)](https://travis-ci.org/switer/muxjs)
 [![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=master)](https://coveralls.io/r/switer/muxjs?branch=master)
+[![npm version](https://badge.fury.io/js/muxjs.svg)](http://badge.fury.io/js/muxjs)
 
 Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your look back code and find some logic are described as below:
 > if this condition and this other condition are met, then this value should be 'x'.
