@@ -294,6 +294,14 @@ module.exports = function (Mux, assert) {
             assert.equal(comment.$get('title'), 'mux.js')
             assert.equal(comment.$get('replies'), 5)
         })
+        it('$get property value by keyPath', function () {
+            comment.$unwatch()
+
+            comment.$add('person', {name: {first: 'switer'}})
+            comment.replyUsers = [{name: {first: 'switer'}}]
+            assert.equal(comment.$get('person.name.first'), 'switer')
+            assert.equal(comment.$get('replyUsers[0].name.first'), 'switer')
+        })
         it('$get computed property', function () {
             comment.$unwatch()
             comment.replyUsers = [{author: ''}]
