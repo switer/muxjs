@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.0.0
+* Mux.js v2.0.2
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -252,7 +252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _copyValue (v) {
 	        var t = util.type(v)
 	        switch(t) {
-	            case 'object': return util.copyObj(v)
+	            case 'object': return util.copyObject(v)
 	            case 'array': return util.copyArray(v)
 	            default: return v
 	        }
@@ -695,16 +695,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	        /**
 	         *  Get property value by name, using for get value of computed property without cached
 	         *  change prop/props value, it will be trigger change event
-	         *  @param kp <String>
-	         *  @param kpMap <Object>
+	         *  @param kp <String> keyPath
 	         */
 	        "$get": {
 	            enumerable: false,
-	            value: function(propname) {
-	                if (~_observableKeys.indexOf(propname)) 
-	                    return _props[propname]
-	                else if (~_computedKeys.indexOf(propname)) {
-	                    return (_computedProps[propname].fn || NOOP).call(model, model)
+	            value: function(kp) {
+
+	                if (~_observableKeys.indexOf(kp)) 
+	                    return _props[kp]
+	                else if (~_computedKeys.indexOf(kp)) {
+	                    return (_computedProps[kp].fn || NOOP).call(model, model)
+	                } else {
+	                    // keyPath
+	                    var normalKP = keypath.normalize(kp)
+	                    var parts = normalKP.split('.')
+	                    if (!~_observableKeys.indexOf(parts[0])) {
+	                        return
+	                    } else {
+	                        return keypath.get(_props, normalKP)
+	                    }
 	                }
 	            }
 	        },
@@ -1113,9 +1122,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return nArr
 	    },
-	    copyObject: function () {
+	    copyObject: function (obj) {
 	        var cObj = {}
-	        this.objEach(function (k, v) {
+	        this.objEach(obj, function (k, v) {
 	            cObj[k] = v
 	        })
 	        return cObj
