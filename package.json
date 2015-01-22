@@ -1,6 +1,6 @@
 {
   "name": "muxjs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
