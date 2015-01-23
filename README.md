@@ -36,6 +36,7 @@ npm install muxjs --save
 - **[Instance Options](#instance-options)**
     - [props](#props)
     - [computed](#computed)
+    - [deep](#deep)
 - **[Instance Methods](#instance-methods)**
     - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
     - [$get(propname)](#computed)
@@ -154,6 +155,18 @@ mux.items.push(4)
 assert.equal(mux.count, 4)
 ```
 
+##### `deep`
+- Type: ` Boolean`
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
+Deeping observe for each Object/Array type prop/subprop. See: [Deeping observe]()
+```js
+new Mux({
+    deep: true
+    props: {}
+})
+```
 
 ### Instance Methods
 ##### `$set([keyPath, value] | props)`
@@ -311,8 +324,12 @@ mux.$unwatch('name')
 // unsubscribe all of the Mux instance
 mux.$unwatch()
 ```
+
 ##### `$props( )`
 * Return: `Object`
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
 Return all properties of the instance. Properties do not contain computed properties(Only observed properties).
 ```js
 var mux = Mux({ props: { name: 'Muxjs' } })
