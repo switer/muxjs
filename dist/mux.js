@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.0.2
+* Mux.js v2.0.3
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -70,12 +70,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var Message = __webpack_require__(2)
-	var expect = __webpack_require__(3)
-	var keypath = __webpack_require__(4)
-	var arrayHook = __webpack_require__(5)
-	var info = __webpack_require__(6)
-	var util = __webpack_require__(7)
+	/**
+	 *  External module's name startof "$"
+	 */
+	var $Message = __webpack_require__(2)
+	var $expect = __webpack_require__(3)
+	var $keypath = __webpack_require__(4)
+	var $arrayHook = __webpack_require__(5)
+	var $info = __webpack_require__(6)
+	var $util = __webpack_require__(7)
 
 
 	var _id = 0
@@ -107,8 +110,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param conf <Object>
 	 */
 	Mux.config = function (conf) {
-	    if (conf.warn === false) info.disable()
-	    else info.enable()
+	    if (conf.warn === false) $info.disable()
+	    else $info.enable()
 	}
 
 	/**
@@ -132,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function Ctor(options, receiveProps) {
 	    var model = this
-	    var emitter = options.emitter || new Message(model) // EventEmitter of this model, context bind to model
+	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _isDeep = !!options.deep
 
 	    /**
@@ -159,7 +162,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        emitter.emit.apply(emitter, args)
 	    }
 	    function _emitAll() {
-	        var args = util.copyArray(arguments)
+	        var args = $util.copyArray(arguments)
 	        var message = '*:' + _rootPath()
 	        args.unshift(message)
 	        emitter.emit.apply(emitter, args)
@@ -173,9 +176,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Get initial props from options
 	     */
 	    var _initialProps
-	    if (util.type(getter) == 'function') {
+	    if ($util.type(getter) == 'function') {
 	        _initialProps = getter()
-	    } else if (util.type(getter) == 'object') {
+	    } else if ($util.type(getter) == 'object') {
 	        _initialProps = getter
 	    } else {
 	        _initialProps = {}
@@ -184,15 +187,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _computedProps = options.computed || {}
 	    var _observableKeys = Object.keys(_initialProps)
 	    var _computedKeys = Object.keys(_computedProps)
-	    var _computedMetas = {}
-	    var _props = {} // all observable properties {propname: propvalue}
 	    var _computedDepsMapping = {} // mapping: deps --> props
+	    var _computedCaches = {}
+	    var _props = {} // all observable properties {propname: propvalue}
 
 	    /**
 	     *  Observe each prop of props that return from props function
 	     */
 	    _observableKeys.forEach(function(prop) {
-	        _props[prop] = _valueHook(prop, _initialProps[prop])
+	        _props[prop] = _walk(prop, _initialProps[prop])
 	        observedDefOptions[prop] = {
 	            enumerable: true,
 	            get: function() {
@@ -218,67 +221,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var deps = prop.deps
 	        var fn = prop.fn
 
-	        if (util.type(fn) != 'function') 
-	            info.warn('Computed property ' + ck + '\'s "fn" should be a function')
+	        if ($util.type(fn) != 'function') 
+	            $info.warn('Computed property ' + ck + '\'s "fn" should be a function')
 	        
 	        if (!deps) return
 	        /**
 	         *  add dependence to computed props mapping
 	         */
 	        deps.forEach(function (dep) {
-	            _add2ComputedDepsMapping(ck, dep)
+	            _addProp2ComputedDepsMapping(ck, dep)
 	        })
-	        util.patch(_computedMetas, ck, {})
-	        _computedMetas[ck].current = (fn || NOOP).call(model, model)
+	        $util.patch(_computedCaches, ck, {})
+	        _computedCaches[ck].current = (fn || NOOP).call(model, model)
 
 	        computedDefOptions[ck] = {
 	            enumerable: true,
 	            get: function() {
-	                return _computedMetas[ck].current
+	                return _computedCaches[ck].current
 	            },
 	            set: function () {
-	                info.warn('Can not set value to a computed property')
+	                $info.warn('Can not set value to a computed property')
 	            }
 	        }
 	    })
 
 	    /**
-	     *  define enumerable properties
+	     *  Define enumerable computed properties
 	     */
 	    Object.defineProperties(model, computedDefOptions)
 	    computedDefOptions = null
 
 
-	    function _copyValue (v) {
-	        var t = util.type(v)
-	        switch(t) {
-	            case 'object': return util.copyObject(v)
-	            case 'array': return util.copyArray(v)
-	            default: return v
-	        }
-	    }
-
 	    /**
-	     *  add dependence to "_computedDepsMapping"
+	     *  Add dependence to "_computedDepsMapping"
+	     *  @param propname <String> property name
+	     *  @param dep <String> dependency name
 	     */
-	    function _add2ComputedDepsMapping (propname, dep) {
+	    function _addProp2ComputedDepsMapping (propname, dep) {
 	        if (~_computedKeys.indexOf(dep)) 
-	           return info.warn('"' + prop + '" is a computed property, couldn\'t depend a computed property')
+	           return $info.warn('"' + prop + '" is a computed property, couldn\'t depend a computed property')
 
-	        util.patch(_computedDepsMapping, dep, [])
+	        $util.patch(_computedDepsMapping, dep, [])
 	        if (~_computedDepsMapping[dep].indexOf(propname)) return
 	        _computedDepsMapping[dep].push(propname)
 	    }
 	    /**
 	     *  Instance (or reuse) and set/reset keyPath and set/reset emitter
+	     *  @param target <Object> instance target, it could be a Mux instance
+	     *  @param props <Object> property value that has been walked
+	     *  @param kp <String> keyPath of target, use to diff instance keyPath changes or instance with the keyPath
 	     */
-	    function _instanceWithKeypath (target, props, kp) {
+	    function _subMuxInstance (target, props, kp) {
+
 	        var ins
 	        if (target instanceof Mux && target.__kp__ == kp) {
 	            ins = target
 	            ins.$emitter(emitter)
 	        } else {
-	            ins = new Mux({props: props, emitter: emitter, deep: true})
+	            ins = new Mux({
+	                props: props, 
+	                emitter: emitter, 
+	                deep: true
+	            })
 	        }
 	        if (ins.__kp__ == undefined) {
 	            Object.defineProperty(ins, '__kp__', {
@@ -298,43 +302,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    /**
 	     *  A hook method for setting value to "_props"
+	     *  @param name <String> property name
+	     *  @param value
+	     *  @param basePath <String> property's value mouted path
 	     */
-	    function _valueHook (name, value, keyPathPrefix) {
-	        var valueType = util.type(value)
-	        // initial prefix is root path
-	        var kp = keyPathPrefix ? keyPathPrefix : _rootPath() + (_rootPath() ? '.':'') + name
+	    function _walk (name, value, basePath) {
+	        var tov = $util.type(value) // type of value
+	        // initial path prefix is root path
+	        var kp = basePath ? basePath : $keypath.join(_rootPath(), name)
 	        /**
 	         *  Array methods hook
 	         */
-	        if (valueType == 'array') {
-	            arrayHook(value, function (tar, methodName, nativeMethod, args) {
-	                var pv = util.copyArray(tar)
-	                var result = nativeMethod.apply(tar, args)
-	                _props[name] = _valueHook(name, tar, kp)
-	                _emit(name, tar, pv)
+	        if (tov == 'array') {
+	            $arrayHook(value, function (self, methodName, nativeMethod, args) {
+	                var pv = $util.copyArray(self)
+	                var result = nativeMethod.apply(self, args)
+	                // set value directly afer walk
+	                _props[name] = _walk(name, self, kp)
+
+	                _emit(name, self, pv)
 	                _triggerPropertyComputedChange(name)
 	                return result
 	            })
 	        }
 
 	        if (!_isDeep) return value
-	        // deep observe into each prop
-	        switch(valueType) {
-
+	        // deep observe into each property value
+	        switch(tov) {
 	            case 'object': 
 	                var props = {}
 	                var obj = value
 	                if (value instanceof Mux) obj = value.$props()
-	                util.objEach(obj, function (k, v) {
-	                    props[k] = _valueHook(k, v, kp + '.' + k)
+	                $util.objEach(obj, function (k, v) {
+	                    props[k] = _walk(k, v, $keypath.join(kp, k))
 	                })
-	                return _instanceWithKeypath(value, props, kp)
-
+	                return _subMuxInstance(value, props, kp)
 	            case 'array':
 	                value.forEach(function (item, index) {
 	                    // depp into array items
-	                    item = _valueHook(index, item, kp + '[' + index + ']')
-
+	                    item = _walk(index, item, $keypath.join(kp, index))
 	                    Object.defineProperty(value, index, {
 	                        enumerable: true,
 	                        get: function () {
@@ -342,17 +348,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        },
 	                        set: function (v) {
 	                            var pv = v
-	                            var _kp = name + '[' + index + ']'
-	                            item = _valueHook(index, v, _kp)
-	                            _emit(_kp, item, pv)
+	                            var mn = $keypath.join(name, index) // mounted property name
+	                            item = _walk(index, v, $keypath.join(kp, index))
+	                            _emit(mn, item, pv)
 	                        }
 	                    })
 	                })
 	                return value
-
 	            default: 
 	                return value
-
 	        }
 	    }
 
@@ -363,38 +367,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _triggerPropertyComputedChange (propname) {
 	        ;(_computedDepsMapping[propname] || []).forEach(function (ck/*computed key*/) {
 	            // values cached in meta object
-	            util.patch(_computedMetas, ck, {})
+	            $util.patch(_computedCaches, ck, {})
 	            // value swap
-	            _computedMetas[ck].pre = _computedMetas[ck].current
-	            _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
+	            _computedCaches[ck].pre = _computedCaches[ck].current
+	            _computedCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
 	            // emit and passing (next-value, previous-value) 
-	            _emit(ck, _computedMetas[ck].current, _computedMetas[ck].pre)
+	            _emit(ck, _computedCaches[ck].current, _computedCaches[ck].pre)
 	        })
 	    }
 
+	    /*************************************************************
+	            Function name start of "_$" are expose methods
+	    *************************************************************/
 	    /**
-	     *  set key-value pair to private model's props store
+	     *  Set key-value pair to private model's property-object
 	     *  @param kp <String> keyPath
-	     *  @return <Object>
+	     *  @return <Object> diff object
 	     */
 	    function _$sync(kp, value) {
-	        var parts = keypath.normalize(kp).split('.')
+	        var parts = $keypath.normalize(kp).split('.')
 	        var prop = parts[0]
 
 	        if (~_computedKeys.indexOf(prop)) {
-	            info.warn('Can\'t set value to computed property "' + prop + '"')
+	            $info.warn('Can\'t set value to computed property "' + prop + '"')
 	            // return false means sync prop fail
 	            return false
 	        }
 	        if (!~_observableKeys.indexOf(prop)) {
-	            info.warn('Property "' + prop + '" has not been observed')
+	            $info.warn('Property "' + prop + '" has not been observed')
 	            // return false means sync prop fail
 	            return false
 	        }
 
 	        var preValue = _props[prop]
-	        keypath.set(_props, kp, value, function (tar, key, v) {
-	            v = _copyValue(value)
+
+	        $keypath.set(_props, kp, value, function (tar, key, v) {
+	            v = $util.copyValue(value)
 	            if (tar instanceof Mux) {
 	                if (tar.hasOwnProperty(key)) {
 	                    tar.$set(key, v)
@@ -402,7 +410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    tar.$add(key, v)
 	                }
 	            } else {
-	                tar[key] = _copyValue(v)
+	                tar[key] = v
 	            }
 	        })
 	        var nextValue = _props[prop]
@@ -421,21 +429,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    function _$set(kp, value) {
-	        var preProps = util.merge({}, model)
+	        var preProps = $util.merge({}, model)
 	        var diff = _$sync(kp, value)
 	        if (!diff) return
 	        /**
 	         *  Base type change of object type will be trigger change event
 	         *  next and pre value are not keypath value but property value
 	         */
-	        if ( ((_isDeep && kp == diff.mounted) || !_isDeep) && util.diff(diff.next, diff.pre) ) {
+	        if ( ((_isDeep && kp == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre) ) {
 	            var propname = diff.mounted
 	            _triggerPropertyComputedChange(propname)
 	            _emit(propname, diff.next, diff.pre)
 	            
 	            // emit those wildcard callbacks
 	            // passing nextPropsObj and prePropsObj as arguments
-	            _emitAll(util.merge({}, model), preProps)
+	            _emitAll($util.merge({}, model), preProps)
 	        }
 	    }
 
@@ -444,46 +452,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param keyMap <Object> properties object
 	     */
 	    function _$setMulti(keyMap) {
-	        if (!keyMap || util.type(keyMap) != 'object') {return}
+
+	        if (!keyMap || $util.type(keyMap) != 'object') return
+
 	        var willComputedProps = []
-	        var preProps = util.merge({}, model)
+	        var preProps = $util.merge({}, model)
 	        var hasDiff = false
 	        var diff
 
-	        for (var key in keyMap) {
-	            if (keyMap.hasOwnProperty(key)) {
-	                diff = _$sync(key, keyMap[key])
-	                if (!diff) continue
-	                /**
-	                 *  if props is not congruent or diff is an object reference value
-	                 *  then emit change event
-	                 */
-	                if (((_isDeep && key == diff.mounted) || !_isDeep) && util.diff(diff.next, diff.pre)) {
-	                    var propname = diff.mounted
-	                    // emit change immediately
-	                    _emit(propname, diff.next, diff.pre)
+	        $util.objEach(keyMap, function (key, item) {
+	            diff = _$sync(key, item)
+	            if (!diff) return
+	            /**
+	             *  if props is not congruent or diff is an object reference value
+	             *  then emit change event
+	             */
+	            if (((_isDeep && key == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre)) {
+	                var propname = diff.mounted
+	                // emit change immediately
+	                _emit(propname, diff.next, diff.pre)
 
-	                    // for batching emit, if deps has multiple change in once, only trigger one times 
-	                    ;(_computedDepsMapping[propname] || []).reduce(function (pv, cv) {
-	                        if (!~pv.indexOf(cv)) pv.push(cv)
-	                        return pv
-	                    }, willComputedProps)
-	                    hasDiff = true
-	                }
+	                // for batching emit, if deps has multiple change in once, only trigger one times 
+	                ;(_computedDepsMapping[propname] || []).reduce(function (pv, cv) {
+	                    if (!~pv.indexOf(cv)) pv.push(cv)
+	                    return pv
+	                }, willComputedProps)
+	                hasDiff = true
 	            }
-	        }
+	        })
 	        /**
 	         *  Trigger computed property change event in batch
 	         */
 	        willComputedProps.forEach(function (ck) {
-	            util.patch(_computedMetas, ck, {})
+	            $util.patch(_computedCaches, ck, {})
 	            // next --> pre, last --> next swap
-	            var pre = _computedMetas[ck].pre = _computedMetas[ck].current
-	            var next = _computedMetas[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
-	            if (util.diff(next, pre)) _emit(ck, next, pre)
+	            var pre = _computedCaches[ck].pre = _computedCaches[ck].current
+	            var next = _computedCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
+	            if ($util.diff(next, pre)) _emit(ck, next, pre)
 	        })
 	        // emit those wildcard listener's callbacks
-	        hasDiff && _emitAll(util.merge({}, model), preProps)
+	        hasDiff && _emitAll($util.merge({}, model), preProps)
 	    }
 
 	    /**
@@ -493,14 +501,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$add(prop, value) {
 	        var len = arguments.length
-	        expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
+	        $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
 
 	        if (~_observableKeys.indexOf(prop)) {
 	            // If value is specified, reset value
 	            if (len > 1) _$set(prop, value)
 	            return
 	        }
-	        _props[prop] = _valueHook(prop, _copyValue(value))
+	        _props[prop] = _walk(prop, $util.copyValue(value))
 	        _observableKeys.push(prop)
 	        Object.defineProperty(model, prop, {
 	            enumerable: true,
@@ -522,7 +530,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _$addMulti(props) {
 	        var defOptions = {}
 	        props.forEach(function(prop) {
-	            expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
+	            $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
 	            // already exist in observers
 	            if (~_observableKeys.indexOf(prop)) return
 	            _observableKeys.push(prop)
@@ -544,9 +552,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var defOptions = {}
 	        var resetProps
 
-	        util.objEach(propsObj, function (prop, pv) {
+	        $util.objEach(propsObj, function (prop, pv) {
 	            pv = propsObj[prop]
-	            expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
+	            $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
 
 	            // already exist in observers
 	            if (~_observableKeys.indexOf(prop)) {
@@ -556,7 +564,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return
 	            }
 	            
-	            _props[prop] = _valueHook(prop, pv)
+	            _props[prop] = _walk(prop, pv)
 	            _observableKeys.push(prop)
 
 	            defOptions[prop] = {
@@ -579,12 +587,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$computed (propname, deps, fn) {
 	        switch (false) {
-	            case (util.type(propname) == 'string'): 
-	                info.warn('Computed property\'s name should be type of String')
-	            case (util.type(deps) == 'array'): 
-	                info.warn('Computed property\'s "deps" should be type of Array')
-	            case (util.type(fn) == 'function'):
-	                info.warn('Computed property\'s "fn" should be type of Function')
+	            case ($util.type(propname) == 'string'): 
+	                $info.warn('Computed property\'s name should be type of String')
+	            case ($util.type(deps) == 'array'): 
+	                $info.warn('Computed property\'s "deps" should be type of Array')
+	            case ($util.type(fn) == 'function'):
+	                $info.warn('Computed property\'s "fn" should be type of Function')
 	        }
 	        /**
 	         *  property is exist
@@ -600,18 +608,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  Add to dependence-property mapping
 	         */
 	        ;(deps || []).forEach(function (dep) {
-	            _add2ComputedDepsMapping(propname, dep)
+	            _addProp2ComputedDepsMapping(propname, dep)
 	        })
 	        /**
 	         *  define getter
 	         */
-	        util.patch(_computedMetas, propname, {})
-	        _computedMetas[propname].current = (fn || NOOP).call(model, model)
+	        $util.patch(_computedCaches, propname, {})
+	        _computedCaches[propname].current = (fn || NOOP).call(model, model)
 
 	        Object.defineProperty(model, propname, {
 	            enumerable: true,
 	            get: function () {
-	                return _computedMetas[propname].current
+	                return _computedCaches[propname].current
 	            }
 	        })
 	    }
@@ -622,13 +630,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Object.defineProperties(model, {
 	        /**
 	         *  define observerable prop/props
-	         *  @param prop <String> | <Array>
+	         *  @param propname <String> | <Array>
+	         *  @param defaultValue Optional
+	         *  ----------------------------
+	         *  @param propnameArray <Array>
+	         *  ------------------------
+	         *  @param propsObj <Object>
 	         */
 	        "$add": {
 	            enumerable: false,
 	            value: function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
 	                var first = arguments[0]
-	                var firstType = util.type(first)
+	                var firstType = $util.type(first)
 
 	                if (firstType == 'string') {
 	                    // with specified value or not
@@ -649,22 +662,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propname <String> property name
 	         *  @param deps <Array> computed property dependencies
 	         *  @param fn <Function> computed property getter
-	         *  
+	         *  --------------------------------------------------
 	         *  @param propsObj <Object> define multiple properties
 	         */
 	        "$computed":  {
 	            enumerable: false,
 	            value: function (propname, deps, fn/* | [propsObj]*/) {
-	                if (util.type(propname) == 'string') {
+
+	                if ($util.type(propname) == 'string') {
+
 	                    _$computed(propname, deps, fn)
-	                } else if (util.type(propname) == 'object') {
-	                    var propsObj = arguments[0]
-	                    for (propname in propsObj) {
-	                        var pobj = propsObj[propname]
-	                        _$computed(propname, pobj.deps, pobj.fn)
-	                    }
+	                } else if ($util.type(propname) == 'object') {
+
+	                    $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
+	                        _$computed(pn, pv.deps, pv.fn)
+	                    })
 	                } else {
-	                    info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
+	                    $info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
 	                }
 
 	                return this
@@ -674,18 +688,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  subscribe prop change
 	         *  change prop/props value, it will be trigger change event
 	         *  @param kp <String>
+	         *  ---------------------
 	         *  @param kpMap <Object>
 	         */
 	        "$set": {
 	            enumerable: false,
 	            value: function( /*[kp, value] | [kpMap]*/ ) {
 	                var len = arguments.length
-	                if (len >= 2 || (len == 1 && util.type(arguments[0]) == 'string')) {
+	                if (len >= 2 || (len == 1 && $util.type(arguments[0]) == 'string')) {
 	                    _$set(arguments[0], arguments[1])
-	                } else if (len == 1 && util.type(arguments[0]) == 'object') {
+	                } else if (len == 1 && $util.type(arguments[0]) == 'object') {
 	                    _$setMulti(arguments[0])
 	                } else {
-	                    info.warn('Unexpect $set params')
+	                    $info.warn('Unexpect $set params')
 	                }
 
 	                return this
@@ -707,12 +722,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return (_computedProps[kp].fn || NOOP).call(model, model)
 	                } else {
 	                    // keyPath
-	                    var normalKP = keypath.normalize(kp)
+	                    var normalKP = $keypath.normalize(kp)
 	                    var parts = normalKP.split('.')
 	                    if (!~_observableKeys.indexOf(parts[0])) {
 	                        return
 	                    } else {
-	                        return keypath.get(_props, normalKP)
+	                        return $keypath.get(_props, normalKP)
 	                    }
 	                }
 	            }
@@ -734,11 +749,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    prefix && (prefix += '.')
 	                    key = 'change:' + arguments[0]
 	                    callback = arguments[1]
-	                } else if (len == 1 && util.type(arguments[0]) == 'function') {
+	                } else if (len == 1 && $util.type(arguments[0]) == 'function') {
 	                    key = '*:' + _rootPath()
 	                    callback = arguments[0]
 	                } else {
-	                    info.warn('Unexpect $watch params')
+	                    $info.warn('Unexpect $watch params')
 	                    return NOOP
 	                }
 	                emitter.on(key, callback)
@@ -770,34 +785,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    prefix && (prefix += '.')
 	                    key = 'change:' + prefix + arguments[0]
 	                    emitter.off(key, arguments[1])
-	                } else if (len == 1 && util.type(arguments[0]) == 'string') {
+	                } else if (len == 1 && $util.type(arguments[0]) == 'string') {
 	                    // key
 	                    prefix && (prefix += '.')
 	                    emitter.off('change:' + prefix + arguments[0])
-	                } else if (len == 1 && util.type(arguments[0]) == 'function') {
+	                } else if (len == 1 && $util.type(arguments[0]) == 'function') {
 	                    // callback
 	                    emitter.off('*:' + prefix, arguments[0])
 	                } else if (len == 0) {
 	                    // all
 	                    emitter.off()
 	                } else {
-	                    info.warn('Unexpect param type of ' + arguments[0])
+	                    $info.warn('Unexpect param type of ' + arguments[0])
 	                }
 
 	                return this
 	            }
 	        },
 	        /**
-	         *  return all properties without computed properties
+	         *  Return all properties without computed properties
+	         *  @return <Object>
 	         */
 	        "$props": {
 	            enumerable: false,
 	            value: function() {
-	                return util.copyObject(_props)
+	                return $util.copyObject(_props)
 	            }
 	        },
 	        /**
-	         *  instance identifier
+	         *  Reset event emitter
+	         *  @param em <Object> emitter
 	         */
 	        "$emitter": {
 	            enumerable: false,
@@ -821,8 +838,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!options) return
 	    var getter = options.props
 	    var computed = options.computed
-	    getter && expect.type(getter, ['function', 'object'])
-	    computed && expect.type(computed, ['object'])
+	    getter && $expect.type(getter, ['function', 'object'])
+	    computed && $expect.type(computed, ['object'])
 	}
 
 	module.exports = Mux
@@ -951,6 +968,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function expect(cnd, msg) {
 	    if (!cnd) throw new Error(msg || 'Unexpect error')
 	}
+
 	/**
 	 *  Expect obj should be type of/in "type"
 	 *  @param obj
@@ -958,16 +976,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param msg <String> *optional*
 	 */
 	expect.type = function(obj, type, msg) {
-	    
-	    var typeOfType = util.type(type)
-	    var typeOfObj = util.type(obj)
-
-	    if (typeOfType == 'string') {
-	        if (typeOfObj != type) throw new Error(msg || 'Expect param\'s type be ' + type + ' not ' + typeOfObj)
-	    } else if (typeOfType == 'array') {
+	    var tot = util.type(type) // type of "type"
+	    var too = util.type(obj) // type of "obj"
+	    if (tot == 'string') {
+	        if (too != type) throw new Error(msg || 'Expect param\'s type be ' + type + ' not ' + too)
+	    } else if (tot == 'array') {
 	        if (!type.some(function(t) {
-	            if (typeOfObj == t) return true
-	        })) throw new Error(msg || 'Unexpect param\'s type ' + typeOfObj + ', it should one of ' + type.join(','))
+	            if (too == t) return true
+	        })) throw new Error(msg || 'Unexpect param\'s type ' + too + ', it should one of ' + type.join(','))
 	    }
 	}
 	module.exports = expect
@@ -1020,10 +1036,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return dest
 	}
 
+	/**
+	 *  append path to a base path
+	 */
+	function _join(pre, tail) {
+	    var _isIndex = /^\[.*\]$/.exec(tail)
+	    var _isNum = typeof(tail) == 'number'
+	    var _hasBegin = !!pre
+	    !_hasBegin && (pre = '')
+	    if (_isIndex) return pre + tail
+	    else if (_isNum) return pre + '[' + tail + ']'
+	    else if (_hasBegin) return pre + '.' + tail
+	    else return tail 
+	}
+
 	module.exports = {
 	    normalize: _keyPathNormalize,
 	    set: _set,
-	    get: _get
+	    get: _get,
+	    join: _join
 	}
 
 
@@ -1128,6 +1159,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            cObj[k] = v
 	        })
 	        return cObj
+	    },
+	    copyValue: function (v) {
+	        var t = this.type(v)
+	        switch(t) {
+	            case 'object': return this.copyObject(v)
+	            case 'array': return this.copyArray(v)
+	            default: return v
+	        }
 	    }
 	}
 

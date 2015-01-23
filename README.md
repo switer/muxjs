@@ -160,7 +160,7 @@ assert.equal(mux.count, 4)
 
 [ :bookmark:  API Reference Navigation](#api-reference)
 
-Deeping observe for each Object/Array type prop/subprop. See: [Deeping observe]()
+Deep observe for `prop`/`subprop` type of `Object`|`Array` . See: [Deep observe]()
 ```js
 new Mux({
     deep: true

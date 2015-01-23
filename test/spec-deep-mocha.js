@@ -66,6 +66,13 @@ module.exports = function (Mux, assert) {
             })
             vm.$set('person.email', 'guankaishe@gmail.com')
         })
+        it('use \'=\' to append new property will not trigger change event',function () {
+            vm.$unwatch()
+            vm.$watch('person.address', function (next, pre) {
+                assert.equal(false)
+            })
+            vm.person.address =  'china'
+        })
         it('move property',function (done) {
             vm.$unwatch()
             vm.$watch('person.comments', function (next, pre) {
