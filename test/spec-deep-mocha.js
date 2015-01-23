@@ -57,6 +57,15 @@ module.exports = function (Mux, assert) {
             })
             vm.comments[0].title = 'say'
         })
+        it('change array property\'s item value from object to number',function (done) {
+            vm.$unwatch()
+            vm.$watch('comments[0]', function (next, pre) {
+                assert.equal(next, 1)
+                assert(pre.title)
+                done()
+            })
+            vm.comments[0] = 1
+        })
         it('create a new property',function (done) {
             vm.$unwatch()
             vm.$watch('person.email', function (next, pre) {
