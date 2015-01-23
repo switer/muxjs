@@ -43,6 +43,7 @@ npm install muxjs --save
     - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
     - [$watch(\[propname, \] callback)](#watchpropname--callback)
     - [$unwatch(\[propname, \] \[callback\])](#unwatchpropname--callback)
+    - [$props( )](#props-)
 
 ### Global API
 ##### `Mux(options)`
@@ -309,6 +310,13 @@ mux.$unwatch('name', handler)
 mux.$unwatch('name')
 // unsubscribe all of the Mux instance
 mux.$unwatch()
+```
+##### `$props( )`
+* Return: `Object`
+Return all properties of the instance. Properties do not contain computed properties(Only observed properties).
+```js
+var mux = Mux({ props: { name: 'Muxjs' } })
+mux.$props() // --> {name: 'Muxjs'}
 ```
 
 ## License
