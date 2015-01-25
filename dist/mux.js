@@ -554,7 +554,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
 	                var first = arguments[0]
-	                var _needReset
 	                var pn, pv
 
 	                switch($util.type(first)) {
@@ -756,6 +755,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function (em) {
 	                emitter = em
+	                return this
 	            }
 	        }
 	    })

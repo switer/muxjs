@@ -51,7 +51,7 @@ npm install muxjs --save
 
 ## Guide
 - [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
-- [Imperfection of "Object.defineProperty"](https://github.com/switer/muxjs/wiki/Imperfection-of-"Object.defineProperty")
+- [The imperfection of "Object.defineProperty"](https://github.com/switer/muxjs/wiki/The-imperfection-of-%22Object.defineProperty%22)
 - [Compare defineproperties to looped defineproperty](https://github.com/switer/muxjs/wiki/Compare-defineproperties-to-looped-defineproperty)
 
 ### Global API
