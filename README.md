@@ -33,6 +33,7 @@ npm install muxjs --save
 - **[Gloabal API](#global-api)**
     - [Mux(props)](#muxoptions)
     - [Mux.extend(options)](#muxextendoptions)
+    - [Mux.config(conf)](#muxconfigconf)
 - **[Instance Options](#instance-options)**
     - [props](#props)
     - [computed](#computed)
@@ -48,6 +49,8 @@ npm install muxjs --save
 
 ### Global API
 ##### `Mux(options)`
+- Param: `Object` instance options
+
 It is a constructor function that allows you to create Mux instance.*`options`* see: [Instance Options](#instance-options).
 
 ```js
@@ -68,6 +71,7 @@ assert.equal(author.firstName, 'firstName')
 ```
 
 ##### `Mux.extend(options)`
+- Param: `Object` instance options
 - Return: `Function` Class
 
 Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Options](#instance-options).
@@ -86,6 +90,17 @@ var author = new Person({
 })
 assert.equal(author.profession, 'programer')
 assert.equal(author.name, 'switer')
+```
+
+##### `Mux.config(conf)`
+- Param: `Object` global configure
+    * warn `Boolean` if value is `false`, don't show any warning log. **Default**  is `true`
+ 
+Global configure. 
+```js
+Mux.config({
+    warn: false // no warning log
+})
 ```
 
 ### Instance Options
