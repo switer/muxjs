@@ -115,6 +115,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 *  Create a emitter instance
+	 *  @param `Optional` context use for binding "this"
+	 */
+	Mux.emitter = function (context) {
+	    return new $Message(context)
+	}
+
+	/**
 	 *  Mux model factory
 	 *  @private
 	 */
@@ -169,8 +177,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    var getter = options.props
-	    var observedDefOptions = {}
-	    var computedDefOptions = {}
 
 	    /**
 	     *  Get initial props from options
@@ -184,73 +190,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _initialProps = {}
 	    }
 
-	    var _computedProps = options.computed || {}
-	    var _observableKeys = Object.keys(_initialProps)
-	    var _computedKeys = Object.keys(_computedProps)
+	    var _initialComputedProps = options.computed
+	    var _computedProps = {}
+	    var _computedKeys = []
 	    var _computedDepsMapping = {} // mapping: deps --> props
 	    var _computedCaches = {}
+	    var _observableKeys = []
 	    var _props = {} // all observable properties {propname: propvalue}
 
 	    /**
-	     *  Observe each prop of props that return from props function
+	     *  Observe initial properties
 	     */
-	    _observableKeys.forEach(function(prop) {
-	        _props[prop] = _walk(prop, _initialProps[prop])
-	        observedDefOptions[prop] = {
-	            enumerable: true,
-	            get: function() {
-	                return _props[prop]
-	            },
-	            set: function (value) {
-	                _$set(prop, value)
-	            }
-	        }
+	    $util.objEach(_initialProps, function (pn, pv) {
+	        _$add(pn, pv)
 	    })
+	    _initialProps = null
 
 	    /**
-	     *  define enumerable properties
+	     *  Define initial computed properties
 	     */
-	    Object.defineProperties(model, observedDefOptions)
-	    observedDefOptions = null
-
-	    /**
-	     *  define initial computed properties
-	     */
-	    _computedKeys.forEach(function(ck) {
-	        var prop = _computedProps[ck]
-	        var deps = prop.deps
-	        var fn = prop.fn
-
-	        if ($util.type(fn) != 'function') 
-	            $info.warn('Computed property ' + ck + '\'s "fn" should be a function')
-	        
-	        if (!deps) return
-	        /**
-	         *  add dependence to computed props mapping
-	         */
-	        deps.forEach(function (dep) {
-	            _addProp2ComputedDepsMapping(ck, dep)
-	        })
-	        $util.patch(_computedCaches, ck, {})
-	        _computedCaches[ck].current = (fn || NOOP).call(model, model)
-
-	        computedDefOptions[ck] = {
-	            enumerable: true,
-	            get: function() {
-	                return _computedCaches[ck].current
-	            },
-	            set: function () {
-	                $info.warn('Can not set value to a computed property')
-	            }
-	        }
+	    $util.objEach(_initialComputedProps, function (pn, def) {
+	        _$computed(pn, def.deps, def.fn)
 	    })
-
-	    /**
-	     *  Define enumerable computed properties
-	     */
-	    Object.defineProperties(model, computedDefOptions)
-	    computedDefOptions = null
-
+	    _initialComputedProps = null
 
 	    /**
 	     *  Add dependence to "_computedDepsMapping"
@@ -543,6 +505,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  property is exist
 	         */
 	        if (~_computedKeys.indexOf(propname)) return
+
 	        _computedKeys.push(propname)
 	        _computedProps[propname] = {
 	            'deps': deps, 
@@ -565,8 +528,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: true,
 	            get: function () {
 	                return _computedCaches[propname].current
+	            },
+	            set: function () {
+	                $info.warn('Can not set value to a computed property')
 	            }
 	        })
+	        // emit change event when define
+	        _emit(propname, _computedCaches[propname].current)
 	    }
 
 	    /**
@@ -897,20 +865,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    })
 	}
 
-	/**
-	 *  Global Message Central
-	 **/
-	var msg = new Message()
-	Message.on = function() {
-	    msg.on.apply(msg, arguments)
-	}
-	Message.off = function() {
-	    msg.off.apply(msg, arguments)
-	}
-	Message.emit = function() {
-	    msg.emit.apply(msg, arguments)
-	}
-
 	module.exports = Message
 
 
@@ -1087,6 +1041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase()
 	    },
 	    objEach: function (obj, fn) {
+	        if (!obj) return
 	        for(var key in obj) {
 	            if (obj.hasOwnProperty(key)) {
 	                fn(key, obj[key])

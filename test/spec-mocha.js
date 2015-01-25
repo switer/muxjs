@@ -23,7 +23,7 @@ module.exports = function (Mux, assert) {
     })
     var comment = new Comment()
 
-    describe('[contructor]', function () {
+    describe('Contructor', function () {
         var person = new Mux({
             props: function () {
                 return {
@@ -144,7 +144,28 @@ module.exports = function (Mux, assert) {
             })
             comment.replyUsers.push(1)
         })
-
+    })
+    describe('[emitter]', function () {
+        it('Passing custom emitter', function (done) {
+            var em = Mux.emitter()
+            var initChange = false
+            em.on('change:name', function () {
+                initChange = true
+            })
+            var mux = new Mux({
+                emitter: em,
+                props: {
+                    name: '',
+                    email: ''
+                }
+            })
+            em.on('change:email', function (next) {
+                assert(initChange)
+                assert.equal(next, 'guankaishe@gmail.com')
+                done()
+            })
+            mux.email = 'guankaishe@gmail.com'
+        })
     })
     describe('$set && $watch && $unwatch', function () {
         it('Get value after set value immediately', function () {
@@ -370,7 +391,7 @@ module.exports = function (Mux, assert) {
             })
         })
     })
-    describe('$computed', function (t) {
+    describe('$computed', function () {
         it('Define a computed property', function (done) {
             comment.$unwatch()
             comment.$computed('computed1', ['title'], function () {
@@ -407,6 +428,45 @@ module.exports = function (Mux, assert) {
             })
             comment.title = 'world'
             assert.equal(comment.computed2, 'Guankaishe say:world')
+        })
+    })
+
+    describe('$props', function () {
+        it('Get props of model correct without computed props', function () {
+            var mux = new Mux({
+                props: {
+                    name: 'switer'
+                },
+                computed: {
+                    nameLength: {
+                        deps: ['name'],
+                        fn: function () {
+                            return this.name.length
+                        }
+                    }
+                }
+            })
+            var props = mux.$props()
+            assert.equal(props.name, 'switer')
+            assert.equal(props.nameLength, undefined)
+
+        })
+    })
+
+    describe('$emitter', function () {
+        it('Setting custom emitter using $emitter()', function (done) {
+            var emitter = Mux.emitter()
+            emitter.on('change:name', function (next) {
+                assert.equal(next, 'switer')
+                done()
+            })
+            var mux = new Mux({
+                props: {
+                    name: ''
+                }
+            })
+            mux.$emitter(emitter),
+            mux.name = 'switer'
         })
     })
 

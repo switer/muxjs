@@ -31,13 +31,15 @@ npm install muxjs --save
 
 ## API Reference
 - **[Gloabal API](#global-api)**
-    - [Mux(props)](#muxoptions)
-    - [Mux.extend(options)](#muxextendoptions)
-    - [Mux.config(conf)](#muxconfigconf)
+    - [Mux(\[props\])](#muxoptions)
+    - [Mux.extend(\[options\])](#muxextendoptions)
+    - [Mux.config(\[conf\])](#muxconfigconf)
+    - [Mux.emitter(\[context\])](#muxemittercontext)
 - **[Instance Options](#instance-options)**
     - [props](#props)
     - [computed](#computed)
     - [deep](#deep)
+    - [emitter](#emitter)
 - **[Instance Methods](#instance-methods)**
     - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
     - [$get(propname)](#computed)
@@ -49,7 +51,8 @@ npm install muxjs --save
 
 ### Global API
 ##### `Mux(options)`
-- Param: `Object` instance options
+
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 It is a constructor function that allows you to create Mux instance.*`options`* see: [Instance Options](#instance-options).
 
@@ -70,9 +73,10 @@ var author = new Mux({
 assert.equal(author.firstName, 'firstName')
 ```
 
-##### `Mux.extend(options)`
-- Param: `Object` instance options
+##### `Mux.extend([options])`
 - Return: `Function` Class
+
+[ :bookmark:  API Reference Navigation](#api-reference)
 
 Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Options](#instance-options).
 
@@ -92,15 +96,34 @@ assert.equal(author.profession, 'programer')
 assert.equal(author.name, 'switer')
 ```
 
-##### `Mux.config(conf)`
-- Param: `Object` global configure
+##### `Mux.config([conf])`
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
+Global configure. Currently supported configurations:
     * warn `Boolean` if value is `false`, don't show any warning log. **Default**  is `true`
- 
-Global configure. 
+
 ```js
 Mux.config({
     warn: false // no warning log
 })
+```
+
+##### `Mux.emitter([context])`
+- Params: 
+    * context `Object` binding "this" to `context` for event callbacks.
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
+Create a emitter instance.
+
+```js
+var emitter = Mux.emitter()
+emitter.on('change:name', function (name) {
+    // do something
+}) // subscribe
+emitter.off('change:name') // unsubscribe
+emitter.emitter('change:name', 'switer') // publish message
 ```
 
 ### Instance Options
@@ -181,6 +204,26 @@ new Mux({
     deep: true,
     props: {}
 })
+```
+
+##### `emitter`
+- Type: ` EventEmitter`
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
+Use custom emitter instance.
+```js
+var emitter = Mux.emitter()
+emitter.on('change:name', function (next) {
+    next // --> switer
+})
+var mux = new Mux({
+    emitter: emitter,
+    props: {
+        name: ''
+    }
+})
+mux.name = 'switer'
 ```
 
 ### Instance Methods
@@ -280,7 +323,7 @@ mux.$add({ 'name': 'switer' })
 
 [ :bookmark:  API Reference Navigation](#api-reference)
 
-Define a computed property. *deps* and *fn* is necessary.
+Define a computed property. *deps* and *fn* is necessary. If one of **deps** is observable of the instance, emitter a change event after define.
 *computedPropsObj* is using to define multiple computed properties in once,
 each key of *computedPropsObj* is property's name and value is a object contains "deps", "fn".
 Usage as below: 
@@ -349,6 +392,18 @@ Return all properties of the instance. Properties do not contain computed proper
 ```js
 var mux = Mux({ props: { name: 'Muxjs' } })
 mux.$props() // --> {name: 'Muxjs'}
+```
+
+##### `$emitter(emitter)`
+* Return: **this**
+
+[ :bookmark:  API Reference Navigation](#api-reference)
+
+Reset emitter of the mux instance
+```js
+var mux = Mux()
+var em = Mux.emitter()
+mux.$emitter(em)
 ```
 
 ## License
