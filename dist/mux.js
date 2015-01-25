@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.0.3
+* Mux.js v2.0.4
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -123,9 +123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    staticOptionCheck(options)
 
 	    return function (receiveProps) {
-	        var proto = this.__proto__
-	        this.__proto__ = Mux.prototype
-	        this.__proto__.__proto__ = proto
+	        $util.insertProto(this, Mux.prototype)
 	        Ctor.call(this, options, receiveProps)
 	    }
 	}
@@ -137,6 +135,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var model = this
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _isDeep = !!options.deep
+	    var proto = {}
+	    $util.insertProto(model, proto)
 
 	    /**
 	     *  instance identifier
@@ -266,15 +266,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _computedDepsMapping[dep].push(propname)
 	    }
 	    /**
-	     *  Instance (or reuse) and set/reset keyPath and set/reset emitter
+	     *  Instance or reuse a sub-mux-instance with specified keyPath and emitter
 	     *  @param target <Object> instance target, it could be a Mux instance
 	     *  @param props <Object> property value that has been walked
 	     *  @param kp <String> keyPath of target, use to diff instance keyPath changes or instance with the keyPath
 	     */
-	    function _subMuxInstance (target, props, kp) {
+	    function _subInstance (target, props, kp) {
 
 	        var ins
 	        if (target instanceof Mux && target.__kp__ == kp) {
+	            // reuse
 	            ins = target
 	            ins.$emitter(emitter)
 	        } else {
@@ -330,16 +331,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // deep observe into each property value
 	        switch(tov) {
 	            case 'object': 
+	                // walk deep into object items
 	                var props = {}
 	                var obj = value
 	                if (value instanceof Mux) obj = value.$props()
 	                $util.objEach(obj, function (k, v) {
 	                    props[k] = _walk(k, v, $keypath.join(kp, k))
 	                })
-	                return _subMuxInstance(value, props, kp)
+	                return _subInstance(value, props, kp)
 	            case 'array':
+	                // walk deep into array items
 	                value.forEach(function (item, index) {
-	                    // depp into array items
 	                    item = _walk(index, item, $keypath.join(kp, index))
 	                    Object.defineProperty(value, index, {
 	                        enumerable: true,
@@ -347,7 +349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            return item
 	                        },
 	                        set: function (v) {
-	                            var pv = v
+	                            var pv = item
 	                            var mn = $keypath.join(name, index) // mounted property name
 	                            item = _walk(index, v, $keypath.join(kp, index))
 	                            _emit(mn, item, pv)
@@ -399,7 +401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return false
 	        }
 
-	        var preValue = _props[prop]
+	        var pv = _props[prop] // old value
 
 	        $keypath.set(_props, kp, value, function (tar, key, v) {
 	            v = $util.copyValue(value)
@@ -413,14 +415,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                tar[key] = v
 	            }
 	        })
-	        var nextValue = _props[prop]
 	        /**
 	         *  return previous and next value for another compare logic
 	         */
 	        return {
 	            mounted: prop,
-	            next: nextValue,
-	            pre: preValue
+	            next: _props[prop],
+	            pre: pv
 	        }
 	    }
 
@@ -429,7 +430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    function _$set(kp, value) {
-	        var preProps = $util.merge({}, model)
+	        var pps = $util.merge({}, model) // previous props
 	        var diff = _$sync(kp, value)
 	        if (!diff) return
 	        /**
@@ -443,7 +444,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            
 	            // emit those wildcard callbacks
 	            // passing nextPropsObj and prePropsObj as arguments
-	            _emitAll($util.merge({}, model), preProps)
+	            _emitAll($util.merge({}, model), pps)
 	        }
 	    }
 
@@ -456,7 +457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!keyMap || $util.type(keyMap) != 'object') return
 
 	        var willComputedProps = []
-	        var preProps = $util.merge({}, model)
+	        var pps = $util.merge({}, model)
 	        var hasDiff = false
 	        var diff
 
@@ -491,7 +492,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if ($util.diff(next, pre)) _emit(ck, next, pre)
 	        })
 	        // emit those wildcard listener's callbacks
-	        hasDiff && _emitAll($util.merge({}, model), preProps)
+	        hasDiff && _emitAll($util.merge({}, model), pps)
 	    }
 
 	    /**
@@ -505,7 +506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (~_observableKeys.indexOf(prop)) {
 	            // If value is specified, reset value
-	            if (len > 1) _$set(prop, value)
+	            if (len > 1) return true
 	            return
 	        }
 	        _props[prop] = _walk(prop, $util.copyValue(value))
@@ -521,62 +522,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        })
 	        // add peroperty will trigger change event
 	        _emit(prop, value)
-	    }
-
-	    /**
-	     *  create observers for multiple props without set/reset value
-	     *  @param props <Array> properties name list
-	     */
-	    function _$addMulti(props) {
-	        var defOptions = {}
-	        props.forEach(function(prop) {
-	            $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
-	            // already exist in observers
-	            if (~_observableKeys.indexOf(prop)) return
-	            _observableKeys.push(prop)
-	            defOptions[prop] = {
-	                enumerable: true,
-	                get: function() {
-	                    return _props[prop]
-	                }
-	            }
-	        })
-	        // define properties in batch
-	        Object.defineProperties(model, defOptions)
-	    }
-	    /**
-	     *  create observers for multiple props and set/reset with specified value
-	     *  @param propsObj <Object> properties map
-	     */
-	    function _$addMultiObject(propsObj) {
-	        var defOptions = {}
-	        var resetProps
-
-	        $util.objEach(propsObj, function (prop, pv) {
-	            pv = propsObj[prop]
-	            $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
-
-	            // already exist in observers
-	            if (~_observableKeys.indexOf(prop)) {
-	                // batch to reset property's value
-	                !resetProps && (resetProps = {})
-	                resetProps[prop] = pv
-	                return
-	            }
-	            
-	            _props[prop] = _walk(prop, pv)
-	            _observableKeys.push(prop)
-
-	            defOptions[prop] = {
-	                enumerable: true,
-	                get: function() {
-	                    return _props[prop]
-	                }
-	            }
-	        })
-	        // define properties in batch
-	        Object.defineProperties(model, defOptions)
-	        resetProps && _$setMulti(resetProps)
 	    }
 
 	    /**
@@ -627,7 +572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  define instantiation's methods
 	     */
-	    Object.defineProperties(model, {
+	    Object.defineProperties(proto, {
 	        /**
 	         *  define observerable prop/props
 	         *  @param propname <String> | <Array>
@@ -641,19 +586,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
 	                var first = arguments[0]
-	                var firstType = $util.type(first)
+	                var _needReset
+	                var pn, pv
 
-	                if (firstType == 'string') {
-	                    // with specified value or not
-	                    arguments.length > 1 ? _$add(arguments[0], arguments[1]) : _$add(arguments[0])
-	                } else if (firstType == 'array') {
-	                    // observe properties without value
-	                    _$addMulti(first)
-	                } else if (firstType == 'object') {
-	                    // observe properties with value, if key already exist, reset value only
-	                    _$addMultiObject(first)
+	                switch($util.type(first)) {
+	                    case 'string':
+	                        // with specified value or not
+	                        pn = first
+	                        if (arguments.length > 1) {
+	                            pv = arguments[1]
+	                            if (_$add(pn, pv)) {
+	                                _$set(pn, pv)
+	                            }
+	                        } else {
+	                            _$add(pn)
+	                        }
+	                        break
+	                    case 'array':
+	                        // observe properties without value
+	                        first.forEach(function (item) {
+	                            _$add(item)
+	                        })
+	                        break
+	                    case 'object':
+	                        // observe properties with value, if key already exist, reset value only
+	                        var resetProps
+	                        $util.objEach(first, function (ipn, ipv) {
+	                            if (_$add(ipn, ipv)) {
+	                                !resetProps && (resetProps = {})
+	                                resetProps[ipn] = ipv
+	                            }
+	                        })
+	                        if (resetProps) _$setMulti(resetProps)
+	                        break
+	                    default:
+	                        info.warn('Unexpect params')
 	                }
-
 	                return this
 	            }
 	        },
@@ -855,6 +823,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	'use strict';
 
+	var $util = __webpack_require__(7)
+	var _patch = $util.patch
+	var _type = $util.type
+
 	function Message(context) {
 	    this._observers = {}
 	    this._context = context
@@ -923,16 +895,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    obs.forEach(function(item) {
 	        item.cb && item.cb.apply(that._context || null, args)
 	    })
-	}
-
-	/**
-	 *  Util methods
-	 */
-	function _patch(obj, prop, defValue) {
-	    !obj[prop] && (obj[prop] = defValue)
-	}
-	function _type(obj) {
-	    return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase()
 	}
 
 	/**
@@ -1167,6 +1129,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            case 'array': return this.copyArray(v)
 	            default: return v
 	        }
+	    },
+	    insertProto: function (obj, proto) {
+	        var end = obj.__proto__
+	        obj.__proto__ = proto
+	        obj.__proto__.__proto__ = end
 	    }
 	}
 
