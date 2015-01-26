@@ -1,9 +1,7 @@
 'use strict';
 
 module.exports = function (Mux, assert) {
-    Mux.config({
-        warn: false
-    })
+
     var Comment = Mux.extend({
         props: function () {
             return {
@@ -23,150 +21,7 @@ module.exports = function (Mux, assert) {
     })
     var comment = new Comment()
 
-    describe('Contructor', function () {
-        var person = new Mux({
-            props: function () {
-                return {
-                    name: 'switer',
-                    github: 'https://github.com/switer'
-                }
-            },
-            computed: {
-                nameLength: {
-                    deps: ['name'],
-                    fn: function () {
-                        return this.name.length
-                    }
-                }
-            }
-        })
-        var another = new Mux({
-            props: {
-                name: 'guankaishe',
-                email: 'guankaishe@gmail.com'
-            }
-        })
-        it('instance of Mux', function () {
-            assert(person instanceof Mux)
-            var Clazz = Mux.extend()
-            var ins = new Clazz()
-            assert(person instanceof Mux)
-            assert(ins instanceof Mux)
-        })
-        it('Properties is correct when using Mux instance', function () {
-            assert.equal(person['name'], 'switer')
-            assert.equal(person.github, 'https://github.com/switer')
-            assert.equal(person['nameLength'], 6)
-        })
-        it('Properties is correct when using Mux instance and props is an object', function () {
-            assert.equal(another['name'], 'guankaishe')
-            assert.equal(another.email, 'guankaishe@gmail.com')
-        })
-
-        it('Has instance methods', function (done) {
-            person.$unwatch()
-            person.$add('email', 'guankaishe@gmail.com')
-            person.$watch('email', function (next) {
-                assert.equal(next, 'none')
-                done()
-            })
-            person.$set('email', 'none')
-        })
-
-    })
-    describe('[props]', function () {
-        it('Default property\'s value is correct', function () {
-            assert.equal(comment.title, 'comment to me')
-        })
-        it('Set value using dot access', function () {
-            comment.title = 'abc'
-            assert.equal(comment.title, 'abc')
-        })
-        it('Set value using [] access', function () {
-            comment['title'] = 123
-            assert.equal(comment.title, 123)
-        })
-        it('Using "=" operator to set property to an unobserved property to model object', function () {
-            comment.replies123 = true
-            assert.equal(comment.replies123, true)
-        })
-        it('Array .push() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 0)
-                assert.equal(next.length, 1)
-                done()
-            })
-            comment.replyUsers.push(1)
-        })
-        it('Array .pop() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 1)
-                assert.equal(next.length, 0)
-                done()
-            })
-            comment.replyUsers.pop()
-        })
-        it('Array .unshift() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 0)
-                assert.equal(next.length, 1)
-                done()
-            })
-            comment.replyUsers.unshift(2)
-        })
-        it('Array .shift() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 1)
-                assert.equal(next.length, 0)
-                done()
-            })
-            comment.replyUsers.shift()
-        })
-    })
-    describe('[computed]', function () {
-        it('Default replies is 0', function () {
-            assert.equal(comment.replies, 0)
-        })
-        it('Using "=" operator to set property to a computed value', function () {
-            comment.replies = 10
-            assert.equal(comment.replies, 0)
-        })
-        it('Callback When dependenies change', function (done) {
-            assert.equal(comment.replies, 0)
-            comment.$unwatch()
-            comment.$watch('replies', function () {
-                assert.equal(comment.replies, 1)
-                done()
-            })
-            comment.replyUsers.push(1)
-        })
-    })
-    describe('[emitter]', function () {
-        it('Passing custom emitter', function (done) {
-            var em = Mux.emitter()
-            var initChange = false
-            em.on('change:name', function () {
-                initChange = true
-            })
-            var mux = new Mux({
-                emitter: em,
-                props: {
-                    name: '',
-                    email: ''
-                }
-            })
-            em.on('change:email', function (next) {
-                assert(initChange)
-                assert.equal(next, 'guankaishe@gmail.com')
-                done()
-            })
-            mux.email = 'guankaishe@gmail.com'
-        })
-    })
+    
     describe('$set && $watch && $unwatch', function () {
         it('Get value after set value immediately', function () {
             comment.$set('title', 'comment to that')
@@ -181,6 +36,7 @@ module.exports = function (Mux, assert) {
             assert.notEqual(comment.replies, 100)
         })
         it('Change callback after set', function (done) {
+            comment.$unwatch('title')
             comment.$watch('title', function (next, pre) {
                 assert.equal(pre, 'comment to that')
                 assert.equal(next, 'comment to this')
@@ -188,6 +44,14 @@ module.exports = function (Mux, assert) {
                 done()
             })
             comment.$set('title','comment to this')
+        })
+        it('Unwatch by watch return method', function () {
+            comment.$unwatch('title')
+            var unwatch = comment.$watch('title', function (next, pre) {
+                assert(false)
+            })
+            unwatch()
+            comment.$set('title','no callback')
         })
         it('Unwatch last and watch again', function (done) {
             var count = 0

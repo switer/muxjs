@@ -1,3 +1,9 @@
 var Mux = require('../dist/mux.min.js')
 var assert = require('assert')
-require('./spec-mocha')(Mux, assert)
+Mux.config({
+    warn: false
+})
+require('./spec-global-api')(Mux, assert)
+require('./spec-instance-method')(Mux, assert)
+require('./spec-options')(Mux, assert)
+require('./spec-options-deep')(Mux, assert)

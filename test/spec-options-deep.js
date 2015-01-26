@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = function (Mux, assert) {
+    
     var vm = new Mux({
         deep: true,
         props: {
