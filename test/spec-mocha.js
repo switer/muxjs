@@ -468,6 +468,21 @@ module.exports = function (Mux, assert) {
             mux.$emitter(emitter),
             mux.name = 'switer'
         })
+        it('Deep observe instance trigger change event corrent when reset emitter ', function (done) {
+            var mux = new Mux({
+                deep: true,
+                props: {
+                    name: {first: 'switer', last: 'guan'}
+                }
+            })
+            var emitter = Mux.emitter()
+            emitter.on('change:name.first', function (next) {
+                assert.equal(next, 'kaishe')
+                done()
+            })
+            mux.$emitter(emitter),
+            mux.name.first = 'kaishe'
+        })
     })
 
 }

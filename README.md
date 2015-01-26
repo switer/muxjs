@@ -164,7 +164,8 @@ assert.equal((new person).name, 'mux')
 ##### `computed`
 - Type: ` Object`
 - Options:
-    - **deps** `Array` property dependencies
+    - **deps** `Array` property dependencies.
+         *Restricton:*  *`deps`*'s item should not be keyPath (doesn't contain `.` and `[]`).
     - **fn** `Function` Compute function , using as a getter
 
 [ :bookmark:  API Reference Navigation](#api-reference)

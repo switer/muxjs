@@ -755,6 +755,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            enumerable: false,
 	            value: function (em) {
 	                emitter = em
+	                _isDeep && _walkResetEmiter(this.$props(), em)
 	                return this
 	            }
 	        }
@@ -765,6 +766,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _$setMulti(receiveProps)
 
 	}
+	/**
+	 *  Reset emitter of the instance recursively
+	 *  @param ins <Mux>
+	 */
+	function _walkResetEmiter (ins, em) {
+	    if ($util.type(ins) == 'object') {
+	        var items = ins
+	        if (ins instanceof Mux) {
+	            ins.$emitter(em)
+	            items = ins.$props()
+	        }
+	        $util.objEach(items, function (k, v) {
+	            _walkResetEmiter(v, em)
+	        })
+	    } else if ($util.type(ins) == 'array') {
+	        ins.forEach(function (v) {
+	            _walkResetEmiter(v, em)
+	        })
+	    }
+	}
+
 	function NOOP() {}
 	/**
 	 *  Check option's keys type when Mux class instance
