@@ -80,7 +80,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $info = __webpack_require__(6)
 	var $util = __webpack_require__(7)
 
-
 	var _id = 0
 	function allotId() {
 	    return _id ++
@@ -93,7 +92,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Mux(options) {
 	    // static config checking
 	    options = options || {}
-	    staticOptionCheck(options)
 	    Ctor.call(this, options)
 	}
 
@@ -127,8 +125,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @private
 	 */
 	function MuxFactory(options) {
-	    // static config checking
-	    staticOptionCheck(options)
 
 	    return function (receiveProps) {
 	        $util.insertProto(this, Mux.prototype)
@@ -143,16 +139,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var model = this
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _isDeep = !!options.deep
-	    var proto = {}
+	    var proto = {
+	        '__muxid__': allotId()
+	    }
 	    $util.insertProto(model, proto)
 
-	    /**
-	     *  instance identifier
-	     */
-	    Object.defineProperty(model, '__muxid__', {
-	        enumerable: false,
-	        value: allotId()
-	    })
 	    /**
 	     *  return current keypath prefix of this model
 	     */
@@ -165,6 +156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _emit(propname/*, arg1, ..., argX*/) {
 	        var prefix = _rootPath()
 	        var args = arguments
+
 	        prefix && (prefix += '.')
 	        args[0] = 'change:' + prefix + propname
 	        emitter.emit.apply(emitter, args)
@@ -172,6 +164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _emitAll() {
 	        var args = $util.copyArray(arguments)
 	        var message = '*:' + _rootPath()
+
 	        args.unshift(message)
 	        emitter.emit.apply(emitter, args)
 	    }
@@ -181,13 +174,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  Get initial props from options
 	     */
-	    var _initialProps
+	    var _initialProps = {}
 	    if ($util.type(getter) == 'function') {
 	        _initialProps = getter()
 	    } else if ($util.type(getter) == 'object') {
 	        _initialProps = getter
-	    } else {
-	        _initialProps = {}
 	    }
 
 	    var _initialComputedProps = options.computed
@@ -221,7 +212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _addProp2ComputedDepsMapping (propname, dep) {
 	        if (~_computedKeys.indexOf(dep)) 
-	           return $info.warn('"' + prop + '" is a computed property, couldn\'t depend a computed property')
+	           return $info.warn('Dependency should not computed property')
 
 	        $util.patch(_computedDepsMapping, dep, [])
 	        if (~_computedDepsMapping[dep].indexOf(propname)) return
@@ -248,7 +239,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            })
 	        }
 	        if (ins.__kp__ == undefined) {
-	            Object.defineProperty(ins, '__kp__', {
+	            $util.def(ins, '__kp__', {
 	                enumerable: false,
 	                get: function () {
 	                    return kp
@@ -305,7 +296,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // walk deep into array items
 	                value.forEach(function (item, index) {
 	                    item = _walk(index, item, $keypath.join(kp, index))
-	                    Object.defineProperty(value, index, {
+	                    $util.def(value, index, {
 	                        enumerable: true,
 	                        get: function () {
 	                            return item
@@ -464,7 +455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$add(prop, value) {
 	        var len = arguments.length
-	        $expect(!prop.match(/[\.\[\]]/), 'Unexpect propname ' + +', it shoudn\'t has "." and "[" and "]"')
+	        $expect(!prop.match(/[\.\[\]]/), 'Propname shoudn\'t contains "." or "[" or "]"')
 
 	        if (~_observableKeys.indexOf(prop)) {
 	            // If value is specified, reset value
@@ -473,7 +464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        _props[prop] = _walk(prop, $util.copyValue(value))
 	        _observableKeys.push(prop)
-	        Object.defineProperty(model, prop, {
+	        $util.def(model, prop, {
 	            enumerable: true,
 	            get: function() {
 	                return _props[prop]
@@ -495,11 +486,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _$computed (propname, deps, fn) {
 	        switch (false) {
 	            case ($util.type(propname) == 'string'): 
-	                $info.warn('Computed property\'s name should be type of String')
+	                $info.warn('Propname\'s should be "String"')
 	            case ($util.type(deps) == 'array'): 
-	                $info.warn('Computed property\'s "deps" should be type of Array')
+	                $info.warn('"deps" should be "Array"')
 	            case ($util.type(fn) == 'function'):
-	                $info.warn('Computed property\'s "fn" should be type of Function')
+	                $info.warn('"fn" should be "Function"')
 	        }
 	        /**
 	         *  property is exist
@@ -522,76 +513,72 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  define getter
 	         */
 	        $util.patch(_computedCaches, propname, {})
-	        _computedCaches[propname].current = (fn || NOOP).call(model, model)
+	        _computedCaches[propname].current = fn ? fn.call(model, model):undefined
 
-	        Object.defineProperty(model, propname, {
+	        $util.def(model, propname, {
 	            enumerable: true,
 	            get: function () {
 	                return _computedCaches[propname].current
 	            },
 	            set: function () {
-	                $info.warn('Can not set value to a computed property')
+	                $info.warn('Can\'t set value to computed property')
 	            }
 	        })
 	        // emit change event when define
 	        _emit(propname, _computedCaches[propname].current)
 	    }
 
+	     /*******************************
+	               define instantiation's methods
+	     *******************************/
 	    /**
-	     *  define instantiation's methods
+	     *  define observerable prop/props
+	     *  @param propname <String> | <Array>
+	     *  @param defaultValue Optional
+	     *  ----------------------------
+	     *  @param propnameArray <Array>
+	     *  ------------------------
+	     *  @param propsObj <Object>
 	     */
-	    Object.defineProperties(proto, {
-	        /**
-	         *  define observerable prop/props
-	         *  @param propname <String> | <Array>
-	         *  @param defaultValue Optional
-	         *  ----------------------------
-	         *  @param propnameArray <Array>
-	         *  ------------------------
-	         *  @param propsObj <Object>
-	         */
-	        "$add": {
-	            enumerable: false,
-	            value: function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
-	                var first = arguments[0]
-	                var pn, pv
+	    proto.$add = function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
+	        var first = arguments[0]
+	        var pn, pv
 
-	                switch($util.type(first)) {
-	                    case 'string':
-	                        // with specified value or not
-	                        pn = first
-	                        if (arguments.length > 1) {
-	                            pv = arguments[1]
-	                            if (_$add(pn, pv)) {
-	                                _$set(pn, pv)
-	                            }
-	                        } else {
-	                            _$add(pn)
-	                        }
-	                        break
-	                    case 'array':
-	                        // observe properties without value
-	                        first.forEach(function (item) {
-	                            _$add(item)
-	                        })
-	                        break
-	                    case 'object':
-	                        // observe properties with value, if key already exist, reset value only
-	                        var resetProps
-	                        $util.objEach(first, function (ipn, ipv) {
-	                            if (_$add(ipn, ipv)) {
-	                                !resetProps && (resetProps = {})
-	                                resetProps[ipn] = ipv
-	                            }
-	                        })
-	                        if (resetProps) _$setMulti(resetProps)
-	                        break
-	                    default:
-	                        info.warn('Unexpect params')
+	        switch($util.type(first)) {
+	            case 'string':
+	                // with specified value or not
+	                pn = first
+	                if (arguments.length > 1) {
+	                    pv = arguments[1]
+	                    if (_$add(pn, pv)) {
+	                        _$set(pn, pv)
+	                    }
+	                } else {
+	                    _$add(pn)
 	                }
-	                return this
-	            }
-	        },
+	                break
+	            case 'array':
+	                // observe properties without value
+	                first.forEach(function (item) {
+	                    _$add(item)
+	                })
+	                break
+	            case 'object':
+	                // observe properties with value, if key already exist, reset value only
+	                var resetProps
+	                $util.objEach(first, function (ipn, ipv) {
+	                    if (_$add(ipn, ipv)) {
+	                        !resetProps && (resetProps = {})
+	                        resetProps[ipn] = ipv
+	                    }
+	                })
+	                if (resetProps) _$setMulti(resetProps)
+	                break
+	            default:
+	                info.warn('Unexpect params')
+	        }
+	        return this
+	    }
 	        /**
 	         *  define computed prop/props
 	         *  @param propname <String> property name
@@ -600,166 +587,143 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  --------------------------------------------------
 	         *  @param propsObj <Object> define multiple properties
 	         */
-	        "$computed":  {
-	            enumerable: false,
-	            value: function (propname, deps, fn/* | [propsObj]*/) {
+	    proto.$computed = function (propname, deps, fn/* | [propsObj]*/) {
 
-	                if ($util.type(propname) == 'string') {
+	        if ($util.type(propname) == 'string') {
 
-	                    _$computed(propname, deps, fn)
-	                } else if ($util.type(propname) == 'object') {
+	            _$computed(propname, deps, fn)
+	        } else if ($util.type(propname) == 'object') {
 
-	                    $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
-	                        _$computed(pn, pv.deps, pv.fn)
-	                    })
-	                } else {
-	                    $info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
-	                }
+	            $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
+	                _$computed(pn, pv.deps, pv.fn)
+	            })
+	        } else {
+	            $info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
+	        }
 
-	                return this
-	            }
-	        },
-	        /**
-	         *  subscribe prop change
-	         *  change prop/props value, it will be trigger change event
-	         *  @param kp <String>
-	         *  ---------------------
-	         *  @param kpMap <Object>
-	         */
-	        "$set": {
-	            enumerable: false,
-	            value: function( /*[kp, value] | [kpMap]*/ ) {
-	                var len = arguments.length
-	                if (len >= 2 || (len == 1 && $util.type(arguments[0]) == 'string')) {
-	                    _$set(arguments[0], arguments[1])
-	                } else if (len == 1 && $util.type(arguments[0]) == 'object') {
-	                    _$setMulti(arguments[0])
-	                } else {
-	                    $info.warn('Unexpect $set params')
-	                }
+	        return this
+	    }
+	    /**
+	     *  subscribe prop change
+	     *  change prop/props value, it will be trigger change event
+	     *  @param kp <String>
+	     *  ---------------------
+	     *  @param kpMap <Object>
+	     */
+	    proto.$set = function( /*[kp, value] | [kpMap]*/ ) {
+	        var len = arguments.length
+	        if (len >= 2 || (len == 1 && $util.type(arguments[0]) == 'string')) {
+	            _$set(arguments[0], arguments[1])
+	        } else if (len == 1 && $util.type(arguments[0]) == 'object') {
+	            _$setMulti(arguments[0])
+	        } else {
+	            $info.warn('Unexpect $set params')
+	        }
 
-	                return this
-	            }
-	        },
+	        return this
+	    }
 
-	        /**
-	         *  Get property value by name, using for get value of computed property without cached
-	         *  change prop/props value, it will be trigger change event
-	         *  @param kp <String> keyPath
-	         */
-	        "$get": {
-	            enumerable: false,
-	            value: function(kp) {
-
-	                if (~_observableKeys.indexOf(kp)) 
-	                    return _props[kp]
-	                else if (~_computedKeys.indexOf(kp)) {
-	                    return (_computedProps[kp].fn || NOOP).call(model, model)
-	                } else {
-	                    // keyPath
-	                    var normalKP = $keypath.normalize(kp)
-	                    var parts = normalKP.split('.')
-	                    if (!~_observableKeys.indexOf(parts[0])) {
-	                        return
-	                    } else {
-	                        return $keypath.get(_props, normalKP)
-	                    }
-	                }
-	            }
-	        },
-	        /**
-	         *  if params is (key, callback), add callback to key's subscription
-	         *  if params is (callback), subscribe any prop change events of this model
-	         *  @param key <String> optional
-	         *  @param callback <Function>
-	         */
-	        "$watch": {
-	            enumerable: false,
-	            value: function( /*[key, ]callback*/ ) {
-	                var len = arguments.length
-	                var key, callback
-
-	                if (len >= 2) {
-	                    var prefix = _rootPath()
-	                    prefix && (prefix += '.')
-	                    key = 'change:' + arguments[0]
-	                    callback = arguments[1]
-	                } else if (len == 1 && $util.type(arguments[0]) == 'function') {
-	                    key = '*:' + _rootPath()
-	                    callback = arguments[0]
-	                } else {
-	                    $info.warn('Unexpect $watch params')
-	                    return NOOP
-	                }
-	                emitter.on(key, callback)
-
-	                var that = this
-	                var args = arguments
-	                    // return a unsubscribe method
-	                return function() {
-	                    that.$unwatch.apply(that, args)
-	                }
-	            }
-	        },
-	        /**
-	         *  unsubscribe prop change
-	         *  if params is (key, callback), remove callback from key's subscription
-	         *  if params is (callback), remove all callbacks from key' ubscription
-	         *  if params is empty, remove all callbacks of current model
-	         *  @param key <String>
-	         *  @param callback <Function>
-	         */
-	        "$unwatch": {
-	            enumerable: false,
-	            value: function( /*[key, ] [callback] */ ) {
-	                var len = arguments.length
-	                var key
-	                var prefix = _rootPath()
-	                if (len >= 2) {
-	                    // key + callback
-	                    prefix && (prefix += '.')
-	                    key = 'change:' + prefix + arguments[0]
-	                    emitter.off(key, arguments[1])
-	                } else if (len == 1 && $util.type(arguments[0]) == 'string') {
-	                    // key
-	                    prefix && (prefix += '.')
-	                    emitter.off('change:' + prefix + arguments[0])
-	                } else if (len == 1 && $util.type(arguments[0]) == 'function') {
-	                    // callback
-	                    emitter.off('*:' + prefix, arguments[0])
-	                } else if (len == 0) {
-	                    // all
-	                    emitter.off()
-	                } else {
-	                    $info.warn('Unexpect param type of ' + arguments[0])
-	                }
-
-	                return this
-	            }
-	        },
-	        /**
-	         *  Return all properties without computed properties
-	         *  @return <Object>
-	         */
-	        "$props": {
-	            enumerable: false,
-	            value: function() {
-	                return $util.copyObject(_props)
-	            }
-	        },
-	        /**
-	         *  Reset event emitter
-	         *  @param em <Object> emitter
-	         */
-	        "$emitter": {
-	            enumerable: false,
-	            value: function (em) {
-	                emitter = em
-	                _isDeep && _walkResetEmiter(this.$props(), em)
-	                return this
+	    /**
+	     *  Get property value by name, using for get value of computed property without cached
+	     *  change prop/props value, it will be trigger change event
+	     *  @param kp <String> keyPath
+	     */
+	    proto.$get = function(kp) {
+	        if (~_observableKeys.indexOf(kp)) 
+	            return _props[kp]
+	        else if (~_computedKeys.indexOf(kp)) {
+	            return (_computedProps[kp].fn || NOOP).call(model, model)
+	        } else {
+	            // keyPath
+	            var normalKP = $keypath.normalize(kp)
+	            var parts = normalKP.split('.')
+	            if (!~_observableKeys.indexOf(parts[0])) {
+	                return
+	            } else {
+	                return $keypath.get(_props, normalKP)
 	            }
 	        }
-	    })
+	    }
+	    /**
+	     *  if params is (key, callback), add callback to key's subscription
+	     *  if params is (callback), subscribe any prop change events of this model
+	     *  @param key <String> optional
+	     *  @param callback <Function>
+	     */
+	    proto.$watch =  function( /*[key, ]callback*/ ) {
+	        var len = arguments.length
+	        var key, callback
+
+	        if (len >= 2) {
+	            var prefix = _rootPath()
+	            prefix && (prefix += '.')
+	            key = 'change:' + arguments[0]
+	            callback = arguments[1]
+	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
+	            key = '*:' + _rootPath()
+	            callback = arguments[0]
+	        } else {
+	            $info.warn('Unexpect $watch params')
+	            return NOOP
+	        }
+	        emitter.on(key, callback)
+
+	        var that = this
+	        var args = arguments
+	            // return a unsubscribe method
+	        return function() {
+	            that.$unwatch.apply(that, args)
+	        }
+	    }
+	    /**
+	     *  unsubscribe prop change
+	     *  if params is (key, callback), remove callback from key's subscription
+	     *  if params is (callback), remove all callbacks from key' ubscription
+	     *  if params is empty, remove all callbacks of current model
+	     *  @param key <String>
+	     *  @param callback <Function>
+	     */
+	    proto.$unwatch = function( /*[key, ] [callback] */ ) {
+	        var len = arguments.length
+	        var key
+	        var prefix = _rootPath()
+	        if (len >= 2) {
+	            // key + callback
+	            prefix && (prefix += '.')
+	            key = 'change:' + prefix + arguments[0]
+	            emitter.off(key, arguments[1])
+	        } else if (len == 1 && $util.type(arguments[0]) == 'string') {
+	            // key
+	            prefix && (prefix += '.')
+	            emitter.off('change:' + prefix + arguments[0])
+	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
+	            // callback
+	            emitter.off('*:' + prefix, arguments[0])
+	        } else if (len == 0) {
+	            // all
+	            emitter.off()
+	        } else {
+	            $info.warn('Unexpect param type of ' + arguments[0])
+	        }
+
+	        return this
+	    }
+	    /**
+	     *  Return all properties without computed properties
+	     *  @return <Object>
+	     */
+	    proto.$props = function() {
+	        return $util.copyObject(_props)
+	    }
+	    /**
+	     *  Reset event emitter
+	     *  @param em <Object> emitter
+	     */
+	    proto.$emitter = function (em) {
+	        emitter = em
+	        _isDeep && _walkResetEmiter(this.$props(), em)
+	        return this
+	    }
 	    /**
 	     *  A shortcut of $set(props) while instancing
 	     */
@@ -788,17 +752,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function NOOP() {}
-	/**
-	 *  Check option's keys type when Mux class instance
-	 *  if type is unvalid throw an error
-	 */
-	function staticOptionCheck(options) {
-	    if (!options) return
-	    var getter = options.props
-	    var computed = options.computed
-	    getter && $expect.type(getter, ['function', 'object'])
-	    computed && $expect.type(computed, ['object'])
-	}
 
 	module.exports = Mux
 
@@ -906,24 +859,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function expect(cnd, msg) {
 	    if (!cnd) throw new Error(msg || 'Unexpect error')
 	}
-
-	/**
-	 *  Expect obj should be type of/in "type"
-	 *  @param obj
-	 *  @param type <String> | <Array>
-	 *  @param msg <String> *optional*
-	 */
-	expect.type = function(obj, type, msg) {
-	    var tot = util.type(type) // type of "type"
-	    var too = util.type(obj) // type of "obj"
-	    if (tot == 'string') {
-	        if (too != type) throw new Error(msg || 'Expect param\'s type be ' + type + ' not ' + too)
-	    } else if (tot == 'array') {
-	        if (!type.some(function(t) {
-	            if (too == t) return true
-	        })) throw new Error(msg || 'Unexpect param\'s type ' + too + ', it should one of ' + type.join(','))
-	    }
-	}
 	module.exports = expect
 
 
@@ -1002,8 +937,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
+	var $util = __webpack_require__(7)
 	var hookMethods = ['splice', 'push', 'pop', 'shift', 'unshift']
 	var hookFlag ='__hook__'
+
 	module.exports = function (arr, hook) {
 	    hookMethods.forEach(function (m) {
 	        if (arr[m][hookFlag]) {
@@ -1014,14 +951,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // cached native method
 	        var nativeMethod = arr[m]
 	        // method proxy
-	        Object.defineProperty(arr, m, {
+	        $util.def(arr, m, {
 	            enumerable: false,
 	            value: function () {
 	                return hook(arr, m, nativeMethod, arguments)
 	            }
 	        })
 	        // flag mark
-	        Object.defineProperty(arr[m], hookFlag, {
+	        $util.def(arr[m], hookFlag, {
 	            enumerable: false,
 	            value: function (h) {
 	                hook = h
@@ -1111,6 +1048,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var end = obj.__proto__
 	        obj.__proto__ = proto
 	        obj.__proto__.__proto__ = end
+	    },
+	    def: function () {
+	        return Object.defineProperty.apply(Object, arguments)
 	    }
 	}
 
