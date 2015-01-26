@@ -31,6 +31,10 @@ finally it implement the **data to DOM binding**. It's usefull, all right?
 ```bash
 npm install muxjs --save
 ```
+## Examples:
+- [Zect](https://github.com/switer/Zect) Vue.js, way.js like
+- [virtual-dom-binding](https://github.com/switer/virtual-dom-binding) render view with virtual-dom
+- [data-dom-binding](https://github.com/switer/data-dom-binding) zepto do DOM maniputation
 
 ## API Reference
 - **[Gloabal API](#global-api)**
