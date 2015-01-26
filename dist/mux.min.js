@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.1.0
+* Mux.js v2.1.1
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
