@@ -3,14 +3,12 @@
 module.exports = function (Mux, assert) {
     
     var vm = new Mux({
-        deep: true,
         props: {
             person: {name: 'switer'},
             comments: [{title: 'hello'}, 1]
         }
     })
     var vm2 = new Mux({
-        deep: true,
         props: {
             person: {}
         }

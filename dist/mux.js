@@ -138,6 +138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Ctor(options, receiveProps) {
 	    var model = this
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
+	    var _emitter = options._emitter || new $Message(model)
 	    var _isDeep = !!options.deep
 	    var proto = {
 	        '__muxid__': allotId()
@@ -149,24 +150,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _rootPath () {
 	        return model.__kp__ || ''
-	    }
-	    /**
-	     *  local proxy for EventEmitter
-	     */
-	    function _emit(propname/*, arg1, ..., argX*/) {
-	        var prefix = _rootPath()
-	        var args = arguments
-
-	        prefix && (prefix += '.')
-	        args[0] = 'change:' + prefix + propname
-	        emitter.emit.apply(emitter, args)
-	    }
-	    function _emitAll() {
-	        var args = $util.copyArray(arguments)
-	        var message = '*:' + _rootPath()
-
-	        args.unshift(message)
-	        emitter.emit.apply(emitter, args)
 	    }
 
 	    var getter = options.props
@@ -184,8 +167,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _initialComputedProps = options.computed
 	    var _computedProps = {}
 	    var _computedKeys = []
-	    var _computedDepsMapping = {} // mapping: deps --> props
-	    var _computedCaches = {}
+	    var _cptDepsMapping = {} // mapping: deps --> props
+	    var _cptCaches = {} // computed properties caches
 	    var _observableKeys = []
 	    var _props = {} // all observable properties {propname: propvalue}
 
@@ -205,18 +188,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	    })
 	    _initialComputedProps = null
 
+
 	    /**
-	     *  Add dependence to "_computedDepsMapping"
+	     *  local proxy for EventEmitter
+	     */
+	    function _emitChange(propname/*, arg1, ..., argX*/) {
+	        var args = arguments
+	        var evtArgs = $util.copyArray(args)
+	        var kp = $keypath.join(_rootPath(), propname)
+
+	        args[0] = 'change:' + kp
+	        _emitter.emit('change', kp)
+	        emitter.emit.apply(emitter, args)
+
+	        evtArgs[0] = kp
+	        evtArgs.unshift('*')
+	        emitter.emit.apply(emitter, evtArgs)
+	    }
+	    /**
+	     *  batch emit computed property change
+	     */
+	    _emitter.on('change', function (kp) {
+
+	        var willComputedProps = []
+	        /**
+	         *  get all computed props that depend on kp
+	         */
+	        ;(_cptDepsMapping[kp] || []).reduce(function (pv, cv) {
+	            if (!~pv.indexOf(cv)) pv.push(cv)
+	            return pv
+	        }, willComputedProps)
+
+	        willComputedProps.forEach(function (ck) {
+	            $util.patch(_cptCaches, ck, {})
+	            var pre = _cptCaches[ck].pre = _cptCaches[ck].current
+	            var next = _cptCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
+
+	            if ($util.diff(next, pre)) _emitChange(ck, next, pre)
+	        })
+	    })
+	    /**
+	     *  Add dependence to "_cptDepsMapping"
 	     *  @param propname <String> property name
 	     *  @param dep <String> dependency name
 	     */
-	    function _addProp2ComputedDepsMapping (propname, dep) {
+	    function _prop2CptDepsMapping (propname, dep) {
 	        if (~_computedKeys.indexOf(dep)) 
 	           return $info.warn('Dependency should not computed property')
 
-	        $util.patch(_computedDepsMapping, dep, [])
-	        if (~_computedDepsMapping[dep].indexOf(propname)) return
-	        _computedDepsMapping[dep].push(propname)
+	        $util.patch(_cptDepsMapping, dep, [])
+	        if (~_cptDepsMapping[dep].indexOf(propname)) return
+	        _cptDepsMapping[dep].push(propname)
 	    }
 	    /**
 	     *  Instance or reuse a sub-mux-instance with specified keyPath and emitter
@@ -230,12 +252,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (target instanceof Mux && target.__kp__ == kp) {
 	            // reuse
 	            ins = target
-	            ins.$emitter(emitter)
+	            // emitter proxy
+	            ins._$emitter(emitter)
+	            // a private emitter for communication between instances
+	            ins._$privateEmitter(_emitter)
 	        } else {
 	            ins = new Mux({
-	                props: props, 
+	                props: props,
 	                emitter: emitter, 
-	                deep: true
+	                deep: true,
+	                _emitter: _emitter
 	            })
 	        }
 	        if (ins.__kp__ == undefined) {
@@ -271,11 +297,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            $arrayHook(value, function (self, methodName, nativeMethod, args) {
 	                var pv = $util.copyArray(self)
 	                var result = nativeMethod.apply(self, args)
-	                // set value directly afer walk
+	                // set value directly after walk
 	                _props[name] = _walk(name, self, kp)
 
-	                _emit(name, self, pv)
-	                _triggerPropertyComputedChange(name)
+	                _emitChange(name, self, pv)
 	                return result
 	            })
 	        }
@@ -305,7 +330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            var pv = item
 	                            var mn = $keypath.join(name, index) // mounted property name
 	                            item = _walk(index, v, $keypath.join(kp, index))
-	                            _emit(mn, item, pv)
+	                            _emitChange(mn, item, pv)
 	                        }
 	                    })
 	                })
@@ -313,22 +338,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            default: 
 	                return value
 	        }
-	    }
-
-	    /**
-	     *  Trigger computed change
-	     *  @param propname <String>
-	     */
-	    function _triggerPropertyComputedChange (propname) {
-	        ;(_computedDepsMapping[propname] || []).forEach(function (ck/*computed key*/) {
-	            // values cached in meta object
-	            $util.patch(_computedCaches, ck, {})
-	            // value swap
-	            _computedCaches[ck].pre = _computedCaches[ck].current
-	            _computedCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
-	            // emit and passing (next-value, previous-value) 
-	            _emit(ck, _computedCaches[ck].current, _computedCaches[ck].pre)
-	        })
 	    }
 
 	    /*************************************************************
@@ -383,7 +392,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    function _$set(kp, value) {
-	        var pps = $util.merge({}, model) // previous props
 	        var diff = _$sync(kp, value)
 	        if (!diff) return
 	        /**
@@ -392,12 +400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        if ( ((_isDeep && kp == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre) ) {
 	            var propname = diff.mounted
-	            _triggerPropertyComputedChange(propname)
-	            _emit(propname, diff.next, diff.pre)
-	            
-	            // emit those wildcard callbacks
-	            // passing nextPropsObj and prePropsObj as arguments
-	            _emitAll($util.merge({}, model), pps)
+	            _emitChange(propname, diff.next, diff.pre)
 	        }
 	    }
 
@@ -409,9 +412,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (!keyMap || $util.type(keyMap) != 'object') return
 
-	        var willComputedProps = []
-	        var pps = $util.merge({}, model)
-	        var hasDiff = false
 	        var diff
 
 	        $util.objEach(keyMap, function (key, item) {
@@ -424,28 +424,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (((_isDeep && key == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre)) {
 	                var propname = diff.mounted
 	                // emit change immediately
-	                _emit(propname, diff.next, diff.pre)
-
-	                // for batching emit, if deps has multiple change in once, only trigger one times 
-	                ;(_computedDepsMapping[propname] || []).reduce(function (pv, cv) {
-	                    if (!~pv.indexOf(cv)) pv.push(cv)
-	                    return pv
-	                }, willComputedProps)
-	                hasDiff = true
+	                _emitChange(propname, diff.next, diff.pre)
 	            }
 	        })
-	        /**
-	         *  Trigger computed property change event in batch
-	         */
-	        willComputedProps.forEach(function (ck) {
-	            $util.patch(_computedCaches, ck, {})
-	            // next --> pre, last --> next swap
-	            var pre = _computedCaches[ck].pre = _computedCaches[ck].current
-	            var next = _computedCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
-	            if ($util.diff(next, pre)) _emit(ck, next, pre)
-	        })
-	        // emit those wildcard listener's callbacks
-	        hasDiff && _emitAll($util.merge({}, model), pps)
 	    }
 
 	    /**
@@ -474,7 +455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        })
 	        // add peroperty will trigger change event
-	        _emit(prop, value)
+	        _emitChange(prop, value)
 	    }
 
 	    /**
@@ -507,25 +488,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  Add to dependence-property mapping
 	         */
 	        ;(deps || []).forEach(function (dep) {
-	            _addProp2ComputedDepsMapping(propname, dep)
+	            _prop2CptDepsMapping(propname, dep)
 	        })
 	        /**
 	         *  define getter
 	         */
-	        $util.patch(_computedCaches, propname, {})
-	        _computedCaches[propname].current = fn ? fn.call(model, model):undefined
+	        $util.patch(_cptCaches, propname, {})
+	        _cptCaches[propname].current = fn ? fn.call(model, model):undefined
 
 	        $util.def(model, propname, {
 	            enumerable: true,
 	            get: function () {
-	                return _computedCaches[propname].current
+	                return _cptCaches[propname].current
 	            },
 	            set: function () {
 	                $info.warn('Can\'t set value to computed property')
 	            }
 	        })
 	        // emit change event when define
-	        _emit(propname, _computedCaches[propname].current)
+	        _emitChange(propname, _cptCaches[propname].current)
 	    }
 
 	     /*******************************
@@ -660,7 +641,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            key = 'change:' + arguments[0]
 	            callback = arguments[1]
 	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
-	            key = '*:' + _rootPath()
+	            key = '*'
 	            callback = arguments[0]
 	        } else {
 	            $info.warn('Unexpect $watch params')
@@ -670,7 +651,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var that = this
 	        var args = arguments
-	            // return a unsubscribe method
+	        // return a unsubscribe method
 	        return function() {
 	            that.$unwatch.apply(that, args)
 	        }
@@ -685,27 +666,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    proto.$unwatch = function( /*[key, ] [callback] */ ) {
 	        var len = arguments.length
-	        var key
+	        var args
 	        var prefix = _rootPath()
 	        if (len >= 2) {
 	            // key + callback
 	            prefix && (prefix += '.')
-	            key = 'change:' + prefix + arguments[0]
-	            emitter.off(key, arguments[1])
+	            args = ['change:' + prefix + arguments[0], arguments[1]]
 	        } else if (len == 1 && $util.type(arguments[0]) == 'string') {
 	            // key
 	            prefix && (prefix += '.')
-	            emitter.off('change:' + prefix + arguments[0])
+	            args = ['change:' + prefix + arguments[0]]
 	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
 	            // callback
-	            emitter.off('*:' + prefix, arguments[0])
+	            args = ['*', arguments[0]]
 	        } else if (len == 0) {
 	            // all
-	            emitter.off()
+	            args = []
 	        } else {
 	            $info.warn('Unexpect param type of ' + arguments[0])
 	        }
-
+	        if (args) {
+	            emitter.off.apply(emitter, args)
+	        }
 	        return this
 	    }
 	    /**
@@ -719,10 +701,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Reset event emitter
 	     *  @param em <Object> emitter
 	     */
-	    proto.$emitter = function (em) {
+	    proto.$emitter = function (em, _pem) {
 	        emitter = em
-	        _isDeep && _walkResetEmiter(this.$props(), em)
+	        _isDeep && _walkResetEmiter(this.$props(), em, _pem)
 	        return this
+	    }
+	    /**
+	     *  set emitter directly
+	     */
+	    proto._$emitter = function (em) {
+	        emitter = em
+	    }
+	    /**
+	     *  set private emitter directly
+	     */
+	    proto._$privateEmitter = function (em) {
+	        em instanceof $Message && (_emitter = em)
 	    }
 	    /**
 	     *  A shortcut of $set(props) while instancing
@@ -734,19 +728,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  Reset emitter of the instance recursively
 	 *  @param ins <Mux>
 	 */
-	function _walkResetEmiter (ins, em) {
+	function _walkResetEmiter (ins, em, _pem) {
 	    if ($util.type(ins) == 'object') {
 	        var items = ins
 	        if (ins instanceof Mux) {
-	            ins.$emitter(em)
+	            ins._$emitter(em, _pem)
 	            items = ins.$props()
 	        }
 	        $util.objEach(items, function (k, v) {
-	            _walkResetEmiter(v, em)
+	            _walkResetEmiter(v, em, _pem)
 	        })
 	    } else if ($util.type(ins) == 'array') {
 	        ins.forEach(function (v) {
-	            _walkResetEmiter(v, em)
+	            _walkResetEmiter(v, em, _pem)
 	        })
 	    }
 	}
@@ -1012,11 +1006,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return next !== pre || next instanceof Object
 	    },
 	    merge: function (dest, source) {
-	        for (var key in source) {
-	            if (source.hasOwnProperty(key)) {
-	                dest[key] = source[key]
-	            }
-	        }
+	        this.objEach(source, function (k, v) {
+	            dest[k] = v
+	        })
 	        return dest
 	    },
 	    copyArray: function (arr) {

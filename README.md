@@ -172,7 +172,7 @@ assert.equal((new person).name, 'mux')
 - Type: ` Object`
 - Options:
     - **deps** `Array` property dependencies.
-         *Restricton:*  *`deps`*'s item should not be keyPath (doesn't contain `.` and `[]`).
+         *Restricton:*  *`deps`*'s item could be keyPath (contain `.` and `[]`, such as: "post.comments[0]").
     - **fn** `Function` Compute function , using as a getter
 
 [ :bookmark:  API Reference Navigation](#api-reference)
@@ -211,10 +211,10 @@ assert.equal(mux.count, 4)
 
 [ :bookmark:  API Reference Navigation](#api-reference)
 
-Deep observe for `prop`/`subprop` type of `Object`|`Array` . See: [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
+Deep observe for `prop`/`subprop` type of `Object`|`Array`.Default is `true`. See: [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
 ```js
 new Mux({
-    deep: true,
+    deep: false, // disable deep observe
     props: {}
 })
 ```
@@ -361,16 +361,17 @@ assert.equal(mux.commentCount, 1)
 
 Subscribe property or computed property changes of the Mux instance.
 
+
 ```js
-var unwatch = mux.$watch('title', function () {
+var unwatch = mux.$watch('title', function (nextValue, preValue) {
     // callback when title has change
 })
 unwatch() // cancel subscribe
 ```
-if *propname* is not passed, will watch all property or computed property changes:
+if *propname* is not present, will watch all property or computed property changes:
 
 ```js
-mux.$watch(function () {
+mux.$watch(function (propname, nextValue, preValue) {
     // callback when title has change
 })
 ```

@@ -3,6 +3,7 @@
 module.exports = function (Mux, assert) {
 
     var Comment = Mux.extend({
+        deep: false,
         props: function () {
             return {
                 title: 'comment to me',
@@ -20,7 +21,6 @@ module.exports = function (Mux, assert) {
         }
     })
     var comment = new Comment()
-
     
     describe('$set && $watch && $unwatch', function () {
         it('Get value after set value immediately', function () {
@@ -153,29 +153,29 @@ module.exports = function (Mux, assert) {
             })
             comment.$set('replyUsers[0].comment', 'test update')
         })
-        it('Set multiple value by keyPath', function (done) {
-            comment.$unwatch()
-            comment.replyUsers = [{
-                author: 'danyan'
-            }, {
-                author: 'test-user'
-            }]
-            comment.post = {
-                replyUsers: [{
-                    author: '*'
-                }]
-            }
-            comment.$watch('replyUsers', function () {
-                assert.equal(this.replyUsers[1].comment, 'test2')
-                done()
-            })
-            comment.$watch('post', function () {
-                assert.equal(this.post.replyUsers[0].comment, 'nothing')
-                done()
-            })
-            comment.$set('replyUsers[1].comment', 'test2')
-            comment.$set('post.replyUsers[1].comment', 'nothing')
-        })
+        // it('Set multiple value by keyPath', function (done) {
+        //     comment.$unwatch()
+        //     comment.replyUsers = [{
+        //         author: 'danyan'
+        //     }, {
+        //         author: 'test-user'
+        //     }]
+        //     comment.post = {
+        //         replyUsers: [{
+        //             author: '*'
+        //         }]
+        //     }
+        //     comment.$watch('replyUsers', function () {
+        //         assert.equal(this.replyUsers[1].comment, 'test2')
+        //         done()
+        //     })
+        //     comment.$watch('post', function () {
+        //         assert.equal(this.post.replyUsers[0].comment, 'nothing')
+        //         done()
+        //     })
+        //     comment.$set('replyUsers[1].comment', 'test2')
+        //     comment.$set('post.replyUsers[1].comment', 'nothing')
+        // })
     })
     describe('$get', function () {
         it('$get property value correctly', function () {
