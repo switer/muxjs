@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.1.2
+* Mux.js v2.2.0
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -139,7 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var model = this
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _emitter = options._emitter || new $Message(model)
-	    var _isDeep = !!options.deep
+	    var _isDeep = options.deep || !options.hasOwnProperty('deep') // default to true
 	    var proto = {
 	        '__muxid__': allotId()
 	    }
@@ -209,7 +209,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  batch emit computed property change
 	     */
 	    _emitter.on('change', function (kp) {
-
 	        var willComputedProps = []
 	        /**
 	         *  get all computed props that depend on kp
@@ -488,7 +487,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  Add to dependence-property mapping
 	         */
 	        ;(deps || []).forEach(function (dep) {
-	            _prop2CptDepsMapping(propname, dep)
+	            while(dep) {
+	                _prop2CptDepsMapping(propname, dep)
+	                dep = $keypath.digest(dep)
+	            }
 	        })
 	        /**
 	         *  define getter
@@ -905,21 +907,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  append path to a base path
 	 */
 	function _join(pre, tail) {
-	    var _isIndex = /^\[.*\]$/.exec(tail)
-	    var _isNum = typeof(tail) == 'number'
 	    var _hasBegin = !!pre
 	    !_hasBegin && (pre = '')
-	    if (_isIndex) return pre + tail
-	    else if (_isNum) return pre + '[' + tail + ']'
+	    if (/^\[.*\]$/.exec(tail)) return pre + tail
+	    else if (typeof(tail) == 'number') return pre + '[' + tail + ']'
 	    else if (_hasBegin) return pre + '.' + tail
 	    else return tail 
 	}
 
+	function _digest(nkp) {
+	    var reg = /\.[^\.]+|\[([^\[\]])+\]$/
+	    if (!reg.exec(nkp)) return ''
+	    return nkp.replace(reg, '')
+	}
 	module.exports = {
 	    normalize: _keyPathNormalize,
 	    set: _set,
 	    get: _get,
-	    join: _join
+	    join: _join,
+	    digest:_digest
 	}
 
 
