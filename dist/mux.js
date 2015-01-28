@@ -127,7 +127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function MuxFactory(options) {
 
 	    return function (receiveProps) {
-	        $util.insertProto(this, Mux.prototype)
+	        if (!(this instanceof Mux)) $util.insertProto(this, Mux.prototype)
 	        Ctor.call(this, options, receiveProps)
 	    }
 	}
@@ -248,13 +248,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _subInstance (target, props, kp) {
 
 	        var ins
-	        if (target instanceof Mux && target.__kp__ == kp) {
+	        if (target instanceof Mux && target.__kp__ == kp && target.__root__ == model.__muxid__) {
 	            // reuse
 	            ins = target
 	            // emitter proxy
 	            ins._$emitter(emitter)
 	            // a private emitter for communication between instances
-	            ins._$privateEmitter(_emitter)
+	            ins._$_emitter(_emitter)
 	        } else {
 	            ins = new Mux({
 	                props: props,
@@ -263,15 +263,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _emitter: _emitter
 	            })
 	        }
+	        if (ins.__root__ == undefined) {
+	            $util.def(ins, '__root__', {
+	                enumerable: false,
+	                value: model.__muxid__
+	            })
+	        }
 	        if (ins.__kp__ == undefined) {
 	            $util.def(ins, '__kp__', {
 	                enumerable: false,
-	                get: function () {
-	                    return kp
-	                },
-	                set: function (value) {
-	                    kp = value
-	                }
+	                value: kp
 	            })
 	        } else if (ins.__kp__ != kp) {
 	            ins.__kp__ = kp
@@ -399,6 +400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        if ( ((_isDeep && kp == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre) ) {
 	            var propname = diff.mounted
+	            // emit change immediately
 	            _emitChange(propname, diff.next, diff.pre)
 	        }
 	    }
@@ -410,21 +412,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _$setMulti(keyMap) {
 
 	        if (!keyMap || $util.type(keyMap) != 'object') return
-
-	        var diff
-
 	        $util.objEach(keyMap, function (key, item) {
-	            diff = _$sync(key, item)
-	            if (!diff) return
-	            /**
-	             *  if props is not congruent or diff is an object reference value
-	             *  then emit change event
-	             */
-	            if (((_isDeep && key == diff.mounted) || !_isDeep) && $util.diff(diff.next, diff.pre)) {
-	                var propname = diff.mounted
-	                // emit change immediately
-	                _emitChange(propname, diff.next, diff.pre)
-	            }
+	            _$set(key, item)
 	        })
 	    }
 
@@ -717,7 +706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  set private emitter directly
 	     */
-	    proto._$privateEmitter = function (em) {
+	    proto._$_emitter = function (em) {
 	        em instanceof $Message && (_emitter = em)
 	    }
 	    /**
