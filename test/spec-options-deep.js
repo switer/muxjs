@@ -107,5 +107,13 @@ module.exports = function (Mux, assert) {
             vm2.person.comments.push('switer')
             vm.comments.push(1)
         })
+        it('selft property',function (done) {
+            vm.$unwatch()
+            vm.$watch('person.parent', function (next, pre) {
+                assert(next)
+                done()
+            })
+            vm.$set('person.parent', vm)
+        })
     })
 }
