@@ -76,8 +76,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $Message = __webpack_require__(2)
 	var $expect = __webpack_require__(3)
 	var $keypath = __webpack_require__(4)
-	var $arrayHook = __webpack_require__(5)
-	var $info = __webpack_require__(6)
+	var $arrayHook = __webpack_require__(6)
+	var $info = __webpack_require__(5)
 	var $util = __webpack_require__(7)
 
 	var _id = 0
@@ -924,6 +924,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
+	var _enable = true
+
+	module.exports = {
+	    enable: function () {
+	        _enable = true
+	    },
+	    disable: function () {
+	        _enable = false
+	    },
+	    warn: function (msg) {
+	        if (!_enable) return
+	        if (console.warn) return console.warn(msg)
+	        console.log(msg)
+	    }
+	}
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
 	var $util = __webpack_require__(7)
 	var hookMethods = ['splice', 'push', 'pop', 'shift', 'unshift']
 	var hookFlag ='__hook__'
@@ -952,28 +974,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        })
 	    })
-	}
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _enable = true
-
-	module.exports = {
-	    enable: function () {
-	        _enable = true
-	    },
-	    disable: function () {
-	        _enable = false
-	    },
-	    warn: function (msg) {
-	        if (!_enable) return
-	        if (console.warn) return console.warn(msg)
-	        console.log(msg)
-	    }
 	}
 
 /***/ },
