@@ -4,20 +4,21 @@
 [![Coverage Status](https://coveralls.io/repos/switer/muxjs/badge.svg?branch=master)](https://coveralls.io/r/switer/muxjs?branch=master)
 [![npm version](https://badge.fury.io/js/muxjs.svg)](http://badge.fury.io/js/muxjs)
 
-Using Muxjs is easy to track the app state. What's app state and how to describe state tansition. When your look back code and find some logic are described as below:
+Using Muxjs is easy to track the app state. What's state and it's tansition? When look back your codes, often find some logic are described as below:
 > if this condition and this other condition are met, then this value should be 'x'.
 
-So,  *vars* of conditions are state, and *condition* is transition, and *'x'* is transpositional state. Using **Muxjs**, you can track  *vars* changing and transition's result *'x'*  changing by
-subscribing their **change event**.
+Here,  *vars* of condition are state, and *condition* is transition, so *'x'* is the transposition's result. 
+**Muxjs** give the way to subscribe *vars*'s changs and transition's result *'x'*'s changes.
 
-Let's look at the example case diagram of a stateful application. 
+Let's look at the diagram of an example case of an stateful application: 
 
 ![Case Diagram](http://switer.qiniudn.com/muxjs.png)
 
-`Left` of diagram is a app's **view-controller** with 5 state (circle), and 3 state **transition logic** (rhombus).<br />
-`Right` of disgram is an **UI Page** with 4 parts, each part depend on state or state-transition.
-If state is trackable, then binding specified DOM opertions to state changing, 
-finally it implement the **data to DOM binding**. It's usefull, all right?
+`Left` of diagram is a **view-controller** with 5 state (circle) and 3 **transition** (rhombus).<br />
+`Right` of disgram is an **UI Page** with 4 parts, each part depend on one state or transition.
+If we can subscribe all changes of state and transition, so we can bind specified DOM opertion when state/transition change,
+finally it implement the **data to DOM binding** , event can do more stuff for a completed **MVVM** framework such as [Zect](https://github.com/switer/Zect). 
+It's usefull, all right?
 
 ## Installation
 **browser:** 
