@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.2.1
+* Mux.js v2.2.2
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -76,8 +76,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $Message = __webpack_require__(2)
 	var $expect = __webpack_require__(3)
 	var $keypath = __webpack_require__(4)
-	var $arrayHook = __webpack_require__(6)
-	var $info = __webpack_require__(5)
+	var $arrayHook = __webpack_require__(5)
+	var $info = __webpack_require__(6)
 	var $util = __webpack_require__(7)
 
 	var _id = 0
@@ -119,6 +119,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	Mux.emitter = function (context) {
 	    return new $Message(context)
 	}
+
+	/**
+	 *  Expose Keypath API
+	 */
+	Mux.keyPath = $keypath
 
 	/**
 	 *  Mux model factory
@@ -184,7 +189,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Define initial computed properties
 	     */
 	    $util.objEach(_initialComputedProps, function (pn, def) {
-	        _$computed(pn, def.deps, def.fn)
+	        _$computed(pn, def.deps, def.fn, def.enum)
 	    })
 	    _initialComputedProps = null
 
@@ -451,8 +456,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param propname <String> property name
 	     *  @param deps <Array> computed property dependencies
 	     *  @param fn <Function> computed property getter
+	     *  @param enumerable <Boolean> whether property enumerable or not
 	     */
-	    function _$computed (propname, deps, fn) {
+	    function _$computed (propname, deps, fn, enumerable) {
 	        switch (false) {
 	            case ($util.type(propname) == 'string'): 
 	                $info.warn('Propname\'s should be "String"')
@@ -488,7 +494,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _cptCaches[propname].current = fn ? fn.call(model, model):undefined
 
 	        $util.def(model, propname, {
-	            enumerable: true,
+	            enumerable: enumerable === undefined ? true : !!enumerable,
 	            get: function () {
 	                return _cptCaches[propname].current
 	            },
@@ -556,23 +562,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propname <String> property name
 	         *  @param deps <Array> computed property dependencies
 	         *  @param fn <Function> computed property getter
+	         *  @param enumerable <Boolean> Optional, whether property enumerable or not
 	         *  --------------------------------------------------
 	         *  @param propsObj <Object> define multiple properties
 	         */
-	    proto.$computed = function (propname, deps, fn/* | [propsObj]*/) {
-
+	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
 	        if ($util.type(propname) == 'string') {
-
-	            _$computed(propname, deps, fn)
+	            _$computed.apply(null, arguments)
 	        } else if ($util.type(propname) == 'object') {
-
 	            $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
-	                _$computed(pn, pv.deps, pv.fn)
+	                _$computed(pn, pv.deps, pv.fn, pv.enum)
 	            })
 	        } else {
 	            $info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
 	        }
-
 	        return this
 	    }
 	    /**
@@ -924,30 +927,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _enable = true
-
-	module.exports = {
-	    enable: function () {
-	        _enable = true
-	    },
-	    disable: function () {
-	        _enable = false
-	    },
-	    warn: function (msg) {
-	        if (!_enable) return
-	        if (console.warn) return console.warn(msg)
-	        console.log(msg)
-	    }
-	}
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
 	var $util = __webpack_require__(7)
-	var hookMethods = ['splice', 'push', 'pop', 'shift', 'unshift']
+	var hookMethods = ['splice', 'push', 'pop', 'shift', 'unshift', 'reverse']
 	var hookFlag ='__hook__'
 
 	module.exports = function (arr, hook) {
@@ -974,6 +955,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        })
 	    })
+	}
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _enable = true
+
+	module.exports = {
+	    enable: function () {
+	        _enable = true
+	    },
+	    disable: function () {
+	        _enable = false
+	    },
+	    warn: function (msg) {
+	        if (!_enable) return
+	        if (console.warn) return console.warn(msg)
+	        console.log(msg)
+	    }
 	}
 
 /***/ },
