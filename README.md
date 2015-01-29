@@ -51,7 +51,7 @@ npm install muxjs --save
     - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
     - [$get(propname)](#computed)
     - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj)
-    - [$computed(\[propname, deps, fn\] | computedPropsObj)](#computedpropname-deps-fn--computedpropsobj)
+    - [$computed(\[propname, deps, fn, enum\] | computedPropsObj)](#computedpropname-deps-fn-enum--computedpropsobj)
     - [$watch(\[propname, \] callback)](#watchpropname--callback)
     - [$unwatch(\[propname, \] \[callback\])](#unwatchpropname--callback)
     - [$props( )](#props-)
