@@ -72,6 +72,18 @@ module.exports = function (Mux, assert) {
             })
             comment.replyUsers.shift()
         })
+        it('Array .reverse() hook', function (done) {
+            comment.$unwatch()
+            comment.$add('nums', [1,2,3,4])
+            comment.$watch('nums', function (next) {
+                assert.equal(next[0], 4)
+                assert.equal(next[1], 3)
+                assert.equal(next[2], 2)
+                assert.equal(next[3], 1)
+                done()
+            })
+            comment.nums.reverse()
+        })
     })
     describe('[computed]', function () {
         it('Default replies is 0', function () {
