@@ -174,6 +174,7 @@ assert.equal((new person).name, 'mux')
     - **deps** `Array` property dependencies.
          *Restricton:*  *`deps`*'s item could be keyPath (contain `.` and `[]`, such as: "post.comments[0]").
     - **fn** `Function` Compute function , using as a getter
+    - **enum** `Boolean` Whether the computed property enumerable or not
 
 [ :bookmark:  API Reference Navigation](#api-reference)
 
@@ -325,11 +326,12 @@ mux.$add(['name']) // without default value
 mux.$add({ 'name': 'switer' })
 ```
 
-##### `$computed([propname, deps, fn] | computedPropsObj)`
+##### `$computed([propname, deps, fn, enum] | computedPropsObj)`
 * Params:
     - **propname** `String` property name
     - **deps** `Array` Property's dependencies
     - **fn** `Function` Getter function
+    - **enum** `Boolean` whether the computed property enumerable or not 
     - *or*
     - **computedPropsObj** `Object` 
 * Return: **this**
