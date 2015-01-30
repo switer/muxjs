@@ -200,7 +200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _emitChange(propname/*, arg1, ..., argX*/) {
 	        var args = arguments
 	        var evtArgs = $util.copyArray(args)
-	        var kp = $keypath.join(_rootPath(), propname)
+	        var kp = $keypath.normalize($keypath.join(_rootPath(), propname))
 
 	        args[0] = 'change:' + kp
 	        _emitter.emit('change', kp)
@@ -519,15 +519,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param propsObj <Object>
 	     */
 	    proto.$add = function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
-	        var first = arguments[0]
+	        var args = arguments
+	        var first = args[0]
 	        var pn, pv
 
 	        switch($util.type(first)) {
 	            case 'string':
 	                // with specified value or not
 	                pn = first
-	                if (arguments.length > 1) {
-	                    pv = arguments[1]
+	                if (args.length > 1) {
+	                    pv = args[1]
 	                    if (_$add(pn, pv)) {
 	                        _$set(pn, pv)
 	                    }
@@ -586,11 +587,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kpMap <Object>
 	     */
 	    proto.$set = function( /*[kp, value] | [kpMap]*/ ) {
-	        var len = arguments.length
-	        if (len >= 2 || (len == 1 && $util.type(arguments[0]) == 'string')) {
-	            _$set(arguments[0], arguments[1])
-	        } else if (len == 1 && $util.type(arguments[0]) == 'object') {
-	            _$setMulti(arguments[0])
+	        var args = arguments
+	        var len = args.length
+	        if (len >= 2 || (len == 1 && $util.type(args[0]) == 'string')) {
+	            _$set(args[0], args[1])
+	        } else if (len == 1 && $util.type(args[0]) == 'object') {
+	            _$setMulti(args[0])
 	        } else {
 	            $info.warn('Unexpect $set params')
 	        }
@@ -626,17 +628,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$watch =  function( /*[key, ]callback*/ ) {
-	        var len = arguments.length
+	        var args = arguments
+	        var len = args.length
+	        var first = args[0]
 	        var key, callback
 
 	        if (len >= 2) {
 	            var prefix = _rootPath()
 	            prefix && (prefix += '.')
-	            key = 'change:' + arguments[0]
-	            callback = arguments[1]
-	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
+	            key = 'change:' + $keypath.normalize(first)
+	            callback = args[1]
+	        } else if (len == 1 && $util.type(first) == 'function') {
 	            key = '*'
-	            callback = arguments[0]
+	            callback = first
 	        } else {
 	            $info.warn('Unexpect $watch params')
 	            return NOOP
@@ -644,7 +648,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        emitter.on(key, callback)
 
 	        var that = this
-	        var args = arguments
 	        // return a unsubscribe method
 	        return function() {
 	            that.$unwatch.apply(that, args)
@@ -659,28 +662,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$unwatch = function( /*[key, ] [callback] */ ) {
-	        var len = arguments.length
-	        var args
-	        var prefix = _rootPath()
+	        var args = arguments
+	        var len = args.length
+	        var first = args[0]
+	        var params
+	        var prefix
 	        if (len >= 2) {
+	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
 	            // key + callback
-	            prefix && (prefix += '.')
-	            args = ['change:' + prefix + arguments[0], arguments[1]]
-	        } else if (len == 1 && $util.type(arguments[0]) == 'string') {
+	            params = ['change:' + prefix, args[1]]
+	        } else if (len == 1 && $util.type(first) == 'string') {
+	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
 	            // key
-	            prefix && (prefix += '.')
-	            args = ['change:' + prefix + arguments[0]]
-	        } else if (len == 1 && $util.type(arguments[0]) == 'function') {
+	            params = ['change:' + prefix]
+	        } else if (len == 1 && $util.type(first) == 'function') {
 	            // callback
-	            args = ['*', arguments[0]]
+	            params = ['*', first]
 	        } else if (len == 0) {
 	            // all
-	            args = []
+	            params = []
 	        } else {
-	            $info.warn('Unexpect param type of ' + arguments[0])
+	            $info.warn('Unexpect param type of ' + first)
 	        }
-	        if (args) {
-	            emitter.off.apply(emitter, args)
+	        if (params) {
+	            emitter.off.apply(emitter, params)
 	        }
 	        return this
 	    }
@@ -778,14 +783,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	Message.prototype.off = function(subject, cb) {
 	    var types
+	    var args = arguments
 
-	    var len = arguments.length
+	    var len = args.length
 	    if (len >= 2) {
 	        // clear all observers of this subject and callback eq "cb"
 	        types = [subject]
-	    } else if (len == 1 && _type(arguments[0]) == 'function') {
+	    } else if (len == 1 && _type(args[0]) == 'function') {
 	        // clear all observers those callback equal "cb"
-	        cb = arguments[0]
+	        cb = args[0]
 	        types = Object.keys(this._observers)
 	    } else if (len == 1) {
 	        // clear all observers of this subject
@@ -859,7 +865,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @example "person.books[1].title" --> "person.books.1.title"
 	 */
 	function _keyPathNormalize(kp) {
-	    return new String(kp).replace(/\[([^\[\]])+\]/g, function(m, k) {
+	    return new String(kp).replace(/\[['"]*([^\[\]])+['"]*\]/g, function(m, k) {
 	        return '.' + k
 	    })
 	}

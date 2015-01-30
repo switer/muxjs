@@ -176,6 +176,35 @@ module.exports = function (Mux, assert) {
             comment.$set('replyUsers[1].comment', 'test2')
             comment.$set('post.replyUsers[1].comment', 'nothing')
         })
+        it('keyPath normalize', function (done) {
+            var a = new Mux({
+                props: {
+                    items: [{
+                        comment: {
+                            title: 'hello'
+                        },
+                        post: [{
+                            content: 'world'
+                        }]
+                    }]
+                }
+            })
+            var step1
+            var step2
+            function _done () {
+                step1 && step2 && done()
+            }
+            a.$watch('items[0].comment["title"]', function (next) {
+                step1 = true
+                _done()
+            })
+            a.$watch('items["0"].post[0].content', function (next) {
+                step2 = true
+                _done()
+            })
+            a.items[0].comment.title = 'none'
+            a.items[0].post[0].content = 'none'
+        })
     })
     describe('$get', function () {
         it('$get property value correctly', function () {
