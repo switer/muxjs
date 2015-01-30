@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.2.2
+* Mux.js v2.2.3
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -145,6 +145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _emitter = options._emitter || new $Message(model)
 	    var _isDeep = options.deep || !options.hasOwnProperty('deep') // default to true
+	    var __kp__ = options.__kp__
 	    var proto = {
 	        '__muxid__': allotId()
 	    }
@@ -154,7 +155,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  return current keypath prefix of this model
 	     */
 	    function _rootPath () {
-	        return model.__kp__ || ''
+	        return __kp__ || ''
 	    }
 
 	    var getter = options.props
@@ -253,7 +254,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _subInstance (target, props, kp) {
 
 	        var ins
-	        if (target instanceof Mux && target.__kp__ == kp && target.__root__ == model.__muxid__) {
+	        if (target instanceof Mux && target.__kp__ === kp && target.__root__ == model.__muxid__) {
 	            // reuse
 	            ins = target
 	            // emitter proxy
@@ -265,7 +266,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                props: props,
 	                emitter: emitter, 
 	                deep: true,
-	                _emitter: _emitter
+	                _emitter: _emitter,
+	                __kp__: kp
 	            })
 	        }
 	        if (ins.__root__ == undefined) {
@@ -273,14 +275,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                enumerable: false,
 	                value: model.__muxid__
 	            })
-	        }
-	        if (ins.__kp__ == undefined) {
-	            $util.def(ins, '__kp__', {
-	                enumerable: false,
-	                value: kp
-	            })
-	        } else if (ins.__kp__ != kp) {
-	            ins.__kp__ = kp
 	        }
 	        return ins
 	    }
@@ -632,11 +626,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var len = args.length
 	        var first = args[0]
 	        var key, callback
-
 	        if (len >= 2) {
-	            var prefix = _rootPath()
-	            prefix && (prefix += '.')
-	            key = 'change:' + $keypath.normalize(first)
+	            key = 'change:' + $keypath.normalize($keypath.join(_rootPath(), first))
 	            callback = args[1]
 	        } else if (len == 1 && $util.type(first) == 'function') {
 	            key = '*'
@@ -865,8 +856,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @example "person.books[1].title" --> "person.books.1.title"
 	 */
 	function _keyPathNormalize(kp) {
-	    return new String(kp).replace(/\[['"]*([^\[\]])+['"]*\]/g, function(m, k) {
-	        return '.' + k
+	    return new String(kp).replace(/\[([^\[\]]+)\]/g, function(m, k) {
+	        return '.' + k.replace(/^["']|["']$/g, '')
 	    })
 	}
 	/**
@@ -906,11 +897,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function _join(pre, tail) {
 	    var _hasBegin = !!pre
-	    !_hasBegin && (pre = '')
+	    if(!_hasBegin) pre = ''
 	    if (/^\[.*\]$/.exec(tail)) return pre + tail
 	    else if (typeof(tail) == 'number') return pre + '[' + tail + ']'
 	    else if (_hasBegin) return pre + '.' + tail
-	    else return tail 
+	    else return tail
 	}
 
 	function _digest(nkp) {
@@ -923,7 +914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    set: _set,
 	    get: _get,
 	    join: _join,
-	    digest:_digest
+	    digest: _digest
 	}
 
 
