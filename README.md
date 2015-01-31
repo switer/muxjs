@@ -57,10 +57,11 @@ npm install muxjs --save
     - [$unwatch(\[propname, \] \[callback\])](#unwatchpropname--callback)
     - [$props( )](#props-)
 
-## Guide
+## Wiki
 - [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
 - [The imperfection of "Object.defineProperty"](https://github.com/switer/muxjs/wiki/The-imperfection-of-%22Object.defineProperty%22)
 - [Compare defineproperties to looped defineproperty](https://github.com/switer/muxjs/wiki/Compare-defineproperties-to-looped-defineproperty)
+- [Can't observe array's indices](https://github.com/switer/muxjs/wiki/The-performance-problem-of-defineProperty-to-array-index)
 
 ### Global API
 ##### `Mux(options)`
