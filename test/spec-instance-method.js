@@ -153,6 +153,18 @@ module.exports = function (Mux, assert) {
             })
             comment.$set('replyUsers[0].comment', 'test update')
         })
+        it('Set array item\'s value use $set', function (done) {
+            var a = new Mux({
+                props: {
+                    items: [1]
+                }
+            })
+            a.$watch('items[0]', function (next) {
+                assert.equal(next, 2)
+                done()
+            })
+            a.$set('items[0]', 2)
+        })
         it('Set multiple value by keyPath', function (done) {
             comment.$unwatch()
             comment.replyUsers = [{

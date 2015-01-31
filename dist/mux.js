@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.2.3
+* Mux.js v2.2.4
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -367,7 +367,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        var pv = _props[prop] // old value
-
+	        var isArrayChange
+	        var piv
 	        $keypath.set(_props, kp, value, function (tar, key, v) {
 	            v = $util.copyValue(value)
 	            if (tar instanceof Mux) {
@@ -377,9 +378,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    tar.$add(key, v)
 	                }
 	            } else {
+	                if ( _isDeep && $util.type(tar) == 'array' && key.match(/^\d+$/) )  {
+	                    isArrayChange = true
+	                    piv = tar[key]
+	                }
 	                tar[key] = v
 	            }
 	        })
+	        if (isArrayChange) {
+	            _emitChange(kp, value, piv)
+	        }
 	        /**
 	         *  return previous and next value for another compare logic
 	         */
