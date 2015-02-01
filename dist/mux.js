@@ -80,6 +80,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $info = __webpack_require__(6)
 	var $util = __webpack_require__(7)
 
+	/**
+	 *  CONTS
+	 */
+	var STRING = 'string'
+	var ARRAY = 'array'
+	var OBJECT = 'object'
+	var FUNCTION = 'function'
+
 	var _id = 0
 	function allotId() {
 	    return _id ++
@@ -164,9 +172,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Get initial props from options
 	     */
 	    var _initialProps = {}
-	    if ($util.type(getter) == 'function') {
+	    if ($util.type(getter) == FUNCTION) {
 	        _initialProps = getter()
-	    } else if ($util.type(getter) == 'object') {
+	    } else if ($util.type(getter) == OBJECT) {
 	        _initialProps = getter
 	    }
 
@@ -292,7 +300,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        /**
 	         *  Array methods hook
 	         */
-	        if (tov == 'array') {
+	        if (tov == ARRAY) {
 	            $arrayHook(value, function (self, methodName, nativeMethod, args) {
 	                var pv = $util.copyArray(self)
 	                var result = nativeMethod.apply(self, args)
@@ -307,7 +315,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!_isDeep) return value
 	        // deep observe into each property value
 	        switch(tov) {
-	            case 'object': 
+	            case OBJECT: 
 	                // walk deep into object items
 	                var props = {}
 	                var obj = value
@@ -316,7 +324,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    props[k] = _walk(k, v, $keypath.join(kp, k))
 	                })
 	                return _subInstance(value, props, kp)
-	            case 'array':
+	            case ARRAY:
 	                // walk deep into array items
 	                value.forEach(function (item, index) {
 	                    value[index] = _walk(index, item, $keypath.join(kp, index))
@@ -378,7 +386,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    tar.$add(key, v)
 	                }
 	            } else {
-	                if ( _isDeep && $util.type(tar) == 'array' && key.match(/^\d+$/) )  {
+	                if ( _isDeep && $util.type(tar) == ARRAY && key.match(/^\d+$/) )  {
 	                    isArrayChange = true
 	                    piv = tar[key]
 	                }
@@ -422,7 +430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$setMulti(keyMap) {
 
-	        if (!keyMap || $util.type(keyMap) != 'object') return
+	        if (!keyMap || $util.type(keyMap) != OBJECT) return
 	        $util.objEach(keyMap, function (key, item) {
 	            _$set(key, item)
 	        })
@@ -466,11 +474,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$computed (propname, deps, fn, enumerable) {
 	        switch (false) {
-	            case ($util.type(propname) == 'string'): 
+	            case ($util.type(propname) == STRING): 
 	                $info.warn('Propname\'s should be "String"')
-	            case ($util.type(deps) == 'array'): 
+	            case ($util.type(deps) == ARRAY): 
 	                $info.warn('"deps" should be "Array"')
-	            case ($util.type(fn) == 'function'):
+	            case ($util.type(fn) == FUNCTION):
 	                $info.warn('"fn" should be "Function"')
 	        }
 	        /**
@@ -530,7 +538,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var pn, pv
 
 	        switch($util.type(first)) {
-	            case 'string':
+	            case STRING:
 	                // with specified value or not
 	                pn = first
 	                if (args.length > 1) {
@@ -542,13 +550,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    _$add(pn)
 	                }
 	                break
-	            case 'array':
+	            case ARRAY:
 	                // observe properties without value
 	                first.forEach(function (item) {
 	                    _$add(item)
 	                })
 	                break
-	            case 'object':
+	            case OBJECT:
 	                // observe properties with value, if key already exist, reset value only
 	                var resetProps
 	                $util.objEach(first, function (ipn, ipv) {
@@ -574,9 +582,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propsObj <Object> define multiple properties
 	         */
 	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
-	        if ($util.type(propname) == 'string') {
+	        if ($util.type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
-	        } else if ($util.type(propname) == 'object') {
+	        } else if ($util.type(propname) == OBJECT) {
 	            $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
 	                _$computed(pn, pv.deps, pv.fn, pv.enum)
 	            })
@@ -595,9 +603,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    proto.$set = function( /*[kp, value] | [kpMap]*/ ) {
 	        var args = arguments
 	        var len = args.length
-	        if (len >= 2 || (len == 1 && $util.type(args[0]) == 'string')) {
+	        if (len >= 2 || (len == 1 && $util.type(args[0]) == STRING)) {
 	            _$set(args[0], args[1])
-	        } else if (len == 1 && $util.type(args[0]) == 'object') {
+	        } else if (len == 1 && $util.type(args[0]) == OBJECT) {
 	            _$setMulti(args[0])
 	        } else {
 	            $info.warn('Unexpect $set params')
@@ -641,7 +649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (len >= 2) {
 	            key = 'change:' + $keypath.normalize($keypath.join(_rootPath(), first))
 	            callback = args[1]
-	        } else if (len == 1 && $util.type(first) == 'function') {
+	        } else if (len == 1 && $util.type(first) == FUNCTION) {
 	            key = '*'
 	            callback = first
 	        } else {
@@ -674,11 +682,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
 	            // key + callback
 	            params = ['change:' + prefix, args[1]]
-	        } else if (len == 1 && $util.type(first) == 'string') {
+	        } else if (len == 1 && $util.type(first) == STRING) {
 	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
 	            // key
 	            params = ['change:' + prefix]
-	        } else if (len == 1 && $util.type(first) == 'function') {
+	        } else if (len == 1 && $util.type(first) == FUNCTION) {
 	            // callback
 	            params = ['*', first]
 	        } else if (len == 0) {
@@ -731,7 +739,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param ins <Mux>
 	 */
 	function _walkResetEmiter (ins, em, _pem) {
-	    if ($util.type(ins) == 'object') {
+	    if ($util.type(ins) == OBJECT) {
 	        var items = ins
 	        if (ins instanceof Mux) {
 	            ins._$emitter(em, _pem)
@@ -740,7 +748,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        $util.objEach(items, function (k, v) {
 	            _walkResetEmiter(v, em, _pem)
 	        })
-	    } else if ($util.type(ins) == 'array') {
+	    } else if ($util.type(ins) == ARRAY) {
 	        ins.forEach(function (v) {
 	            _walkResetEmiter(v, em, _pem)
 	        })
