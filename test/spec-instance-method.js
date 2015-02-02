@@ -415,5 +415,44 @@ module.exports = function (Mux, assert) {
             mux.name.first = 'kaishe'
         })
     })
+    describe('$destroy', function () {
+        it('Instance do not work after destroyed', function () {
+            var mux = new Mux({
+                props: {
+                    name: ''
+                }
+            })
+            mux.$watch('name', function () {
+                assert(false)
+            })
+            mux.$destroy()
+            mux.name = 'switer'
+        })
+        it('destroy own scope handler when share emitter', function (done) {
+            var emiter = Mux.emitter()
+
+            var a = new Mux({
+                emitter: emiter,
+                props: {
+                    name: ''
+                }
+            })
+            var b = new Mux({
+                emitter: emiter,
+                props: {
+                    name: ''
+                }
+            })
+            b.$watch('name', function (next) {
+                assert(false)
+            })
+            a.$watch('name', function (next) {
+                assert.equal(next, 'switer')
+                done()
+            })
+            b.$destroy()
+            a.name = 'switer'
+        })
+    })
 
 }
