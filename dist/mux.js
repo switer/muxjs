@@ -74,11 +74,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  External module's name startof "$"
 	 */
 	var $Message = __webpack_require__(2)
-	var $expect = __webpack_require__(3)
-	var $keypath = __webpack_require__(4)
-	var $arrayHook = __webpack_require__(5)
-	var $info = __webpack_require__(6)
-	var $util = __webpack_require__(7)
+	var $keypath = __webpack_require__(3)
+	var $arrayHook = __webpack_require__(4)
+	var $info = __webpack_require__(5)
+	var $util = __webpack_require__(6)
+	var $normalize = $keypath.normalize
 
 	/**
 	 *  CONTS
@@ -141,7 +141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function MuxFactory(options) {
 
 	    return function (receiveProps) {
-	        if (!(this instanceof Mux)) $util.insertProto(this, Mux.prototype)
+	        if (!instanceOf(this, Mux)) $util.insertProto(this, Mux.prototype)
 	        Ctor.call(this, options, receiveProps)
 	    }
 	}
@@ -158,10 +158,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var __muxid__ = allotId()
 	    var _isExternalEmitter =  !!options.emitter
 	    var _isExternalPrivateEmitter =  !!options._emitter
-	    var _destroy = false // destroy flag
 	    var proto = {
 	        '__muxid__': __muxid__
 	    }
+	    var _destroy // interanl destroyed flag
 
 
 	    $util.insertProto(model, proto)
@@ -227,9 +227,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        willComputedProps.forEach(function (ck) {
 	            $util.patch(_cptCaches, ck, {})
+
 	            var cache = _cptCaches[ck]
-	            var pre = cache.pre = cache.current
-	            var next = cache.current = (_computedProps[ck].fn || NOOP).call(model, model)
+	            var pre = cache.pre = cache.cur
+	            var next = cache.cur = (_computedProps[ck].fn || NOOP).call(model, model)
 
 	            if ($util.diff(next, pre)) _emitChange(ck, next, pre)
 	        })
@@ -239,17 +240,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  private methods
 	     */
-	    function _checkDestroy () {
-	        if (_destroy) {
-	            $info.warn('Instance already has bean destroyed')
-	            return true
-	        }
+	    function _destroyNotice () {
+	        $info.warn('Instance already has bean destroyed')
+	        return _destroy
 	    }
 	    //  local proxy for EventEmitter
 	    function _emitChange(propname/*, arg1, ..., argX*/) {
 	        var args = arguments
 	        var evtArgs = $util.copyArray(args)
-	        var kp = $keypath.normalize($keypath.join(_rootPath(), propname))
+	        var kp = $normalize($keypath.join(_rootPath(), propname))
 
 	        args[0] = CHANGE_EVENT + ':' + kp
 	        _emitter.emit(CHANGE_EVENT, kp)
@@ -282,7 +281,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _subInstance (target, props, kp) {
 
 	        var ins
-	        if (target instanceof Mux && target.__kp__ === kp && target.__root__ == __muxid__) {
+	        if (instanceOf(target, Mux) && target.__kp__ === kp && target.__root__ === __muxid__) {
 	            // reuse
 	            ins = target
 	            // emitter proxy
@@ -298,7 +297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                __kp__: kp
 	            })
 	        }
-	        if (ins.__root__ == undefined) {
+	        if (!ins.__root__) {
 	            $util.def(ins, '__root__', {
 	                enumerable: false,
 	                value: __muxid__
@@ -339,7 +338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // walk deep into object items
 	                var props = {}
 	                var obj = value
-	                if (value instanceof Mux) obj = value.$props()
+	                if (instanceOf(value, Mux)) obj = value.$props()
 	                $util.objEach(obj, function (k, v) {
 	                    props[k] = _walk(k, v, $keypath.join(kp, k))
 	                })
@@ -348,22 +347,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // walk deep into array items
 	                value.forEach(function (item, index) {
 	                    value[index] = _walk(index, item, $keypath.join(kp, index))
-	                    /**
-	                     *  "defineProperty" to array indexcies will cause performance problem
-	                     *  remove it
-	                     */
-	                    // $util.def(value, index, {
-	                    //     enumerable: true,
-	                    //     get: function () {
-	                    //         return item
-	                    //     },
-	                    //     set: function (v) {
-	                    //         var pv = item
-	                    //         var mn = $keypath.join(name, index) // mounted property name
-	                    //         item = _walk(index, v, $keypath.join(kp, index))
-	                    //         _emitChange(mn, item, pv)
-	                    //     }
-	                    // })
 	                })
 	                return value
 	            default: 
@@ -380,7 +363,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @return <Object> diff object
 	     */
 	    function _$sync(kp, value) {
-	        var parts = $keypath.normalize(kp).split('.')
+	        var parts = $normalize(kp).split('.')
 	        var prop = parts[0]
 
 	        if (~_computedKeys.indexOf(prop)) {
@@ -399,19 +382,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var piv
 	        $keypath.set(_props, kp, value, function (tar, key, v) {
 	            v = $util.copyValue(value)
-	            if (tar instanceof Mux) {
+
+	            if (instanceOf(tar, Mux)) {
 	                if (tar.hasOwnProperty(key)) {
 	                    tar.$set(key, v)
 	                } else {
 	                    tar.$add(key, v)
 	                }
-	            } else {
-	                if ( _isDeep && $util.type(tar) == ARRAY && key.match(/^\d+$/) )  {
-	                    isArrayChange = true
-	                    piv = tar[key]
-	                }
-	                tar[key] = v
+	                return
+	            } else if (_isDeep && $util.type(tar) == ARRAY && key.match(/^\d+$/)) {
+	                isArrayChange = true
+	                piv = tar[key]
 	            }
+	            tar[key] = v
 	        })
 	        if (isArrayChange) {
 	            _emitChange(kp, value, piv)
@@ -431,7 +414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    function _$set(kp, value) {
-	        if(_checkDestroy()) return
+	        if (_destroy) return _destroyNotice()
 
 	        var diff = _$sync(kp, value)
 	        if (!diff) return
@@ -451,6 +434,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param keyMap <Object> properties object
 	     */
 	    function _$setMulti(keyMap) {
+	        if (_destroy) return _destroyNotice()
 
 	        if (!keyMap || $util.type(keyMap) != OBJECT) return
 	        $util.objEach(keyMap, function (key, item) {
@@ -464,13 +448,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param value property value
 	     */
 	    function _$add(prop, value) {
-	        var len = arguments.length
-	        $expect(!prop.match(/[\.\[\]]/), 'Propname shoudn\'t contains "." or "[" or "]"')
+	        if (prop.match(/[\.\[\]]/)) {
+	            throw new Error('Propname shoudn\'t contains "." or "[" or "]"')
+	        }
 
 	        if (~_observableKeys.indexOf(prop)) {
 	            // If value is specified, reset value
-	            if (len > 1) return true
-	            return
+	            return arguments.length > 1 ? true : false
 	        }
 	        _props[prop] = _walk(prop, $util.copyValue(value))
 	        _observableKeys.push(prop)
@@ -495,14 +479,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param enumerable <Boolean> whether property enumerable or not
 	     */
 	    function _$computed (propname, deps, fn, enumerable) {
-	        switch (false) {
-	            case ($util.type(propname) == STRING): 
-	                $info.warn('Propname\'s should be "String"')
-	            case ($util.type(deps) == ARRAY): 
-	                $info.warn('"deps" should be "Array"')
-	            case ($util.type(fn) == FUNCTION):
-	                $info.warn('"fn" should be "Function"')
-	        }
+	        // switch (false) {
+	        //     case ($util.type(propname) == STRING): 
+	        //         $info.warn('Propname\'s should be "String"')
+	        //     case ($util.type(deps) == ARRAY): 
+	        //         $info.warn('"deps" should be "Array"')
+	        //     case ($util.type(fn) == FUNCTION):
+	        //         $info.warn('"fn" should be "Function"')
+	        // }
 	        /**
 	         *  property is exist
 	         */
@@ -527,19 +511,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  define getter
 	         */
 	        $util.patch(_cptCaches, propname, {})
-	        _cptCaches[propname].current = fn ? fn.call(model, model):undefined
+	        var dest = _cptCaches[propname]
+	        dest.cur = fn ? fn.call(model, model):undefined
 
 	        $util.def(model, propname, {
 	            enumerable: enumerable === undefined ? true : !!enumerable,
 	            get: function () {
-	                return _cptCaches[propname].current
+	                return dest.cur
 	            },
 	            set: function () {
 	                $info.warn('Can\'t set value to computed property')
 	            }
 	        })
 	        // emit change event when define
-	        _emitChange(propname, _cptCaches[propname].current)
+	        _emitChange(propname, dest.cur)
 	    }
 
 	     /*******************************
@@ -555,7 +540,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param propsObj <Object>
 	     */
 	    proto.$add = function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
-	        if(_checkDestroy()) return
 	        var args = arguments
 	        var first = args[0]
 	        var pn, pv
@@ -605,7 +589,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propsObj <Object> define multiple properties
 	         */
 	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
-	        if(_checkDestroy()) return
 	        if ($util.type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
 	        } else if ($util.type(propname) == OBJECT) {
@@ -625,7 +608,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kpMap <Object>
 	     */
 	    proto.$set = function( /*[kp, value] | [kpMap]*/ ) {
-	        if(_checkDestroy()) return
 
 	        var args = arguments
 	        var len = args.length
@@ -646,14 +628,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    proto.$get = function(kp) {
-	        if(_checkDestroy()) return
 	        if (~_observableKeys.indexOf(kp)) 
 	            return _props[kp]
 	        else if (~_computedKeys.indexOf(kp)) {
 	            return (_computedProps[kp].fn || NOOP).call(model, model)
 	        } else {
 	            // keyPath
-	            var normalKP = $keypath.normalize(kp)
+	            var normalKP = $normalize(kp)
 	            var parts = normalKP.split('.')
 	            if (!~_observableKeys.indexOf(parts[0])) {
 	                return
@@ -669,13 +650,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$watch =  function( /*[key, ]callback*/ ) {
-	        if(_checkDestroy()) return
 	        var args = arguments
 	        var len = args.length
 	        var first = args[0]
 	        var key, callback
 	        if (len >= 2) {
-	            key = 'change:' + $keypath.normalize($keypath.join(_rootPath(), first))
+	            key = 'change:' + $normalize($keypath.join(_rootPath(), first))
 	            callback = args[1]
 	        } else if (len == 1 && $util.type(first) == FUNCTION) {
 	            key = '*'
@@ -700,7 +680,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$unwatch = function( /*[key, ] [callback] */ ) {
-	        if(_checkDestroy()) return
 	        var args = arguments
 	        var len = args.length
 	        var first = args[0]
@@ -711,7 +690,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                params = [args[1]]
 	            case (len == 1 && $util.type(first) == STRING):
 	                !params && (params = [])
-	                prefix = CHANGE_EVENT + ':' + $keypath.normalize($keypath.join(_rootPath(), first))
+	                prefix = CHANGE_EVENT + ':' + $normalize($keypath.join(_rootPath(), first))
 	                params.unshift(prefix)
 	                break
 	            case (len == 1 && $util.type(first) == FUNCTION):
@@ -734,7 +713,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @return <Object>
 	     */
 	    proto.$props = function() {
-	        if(_checkDestroy()) return
 	        return $util.copyObject(_props)
 	    }
 	    /**
@@ -742,7 +720,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param em <Object> emitter
 	     */
 	    proto.$emitter = function (em, _pem) {
-	        if(_checkDestroy()) return
 	        emitter = em
 	        _isDeep && _walkResetEmiter(this.$props(), em, _pem)
 	        return this
@@ -751,18 +728,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  set emitter directly
 	     */
 	    proto._$emitter = function (em) {
-	        if(_checkDestroy()) return
 	        emitter = em
 	    }
 	    /**
 	     *  set private emitter directly
 	     */
 	    proto._$_emitter = function (em) {
-	        if(_checkDestroy()) return
-	        em instanceof $Message && (_emitter = em)
+	        instanceOf(em, $Message) && (_emitter = em)
 	    }
 	    proto.$destroy = function () {
-	        if (_destroy) return
+	        // clean up all proto methods
+	        $util.objEach(proto, function (k, v) {
+	            if ($util.type(v) == FUNCTION && k != '$isDestroy') proto[k] = _destroyNotice
+	        })
 
 	        if (!_isExternalEmitter) emitter.off()
 	        else emitter.off(__muxid__)
@@ -778,7 +756,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _cptCaches = null
 	        _observableKeys = null
 	        _props = null
+
+	        // destroy external flag
 	        _destroy = true
+	    }
+	    proto.$isDestroy = function () {
+	        return _destroy
 	    }
 	    /**
 	     *  A shortcut of $set(props) while instancing
@@ -793,7 +776,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _walkResetEmiter (ins, em, _pem) {
 	    if ($util.type(ins) == OBJECT) {
 	        var items = ins
-	        if (ins instanceof Mux) {
+	        if (instanceOf(ins, Mux)) {
 	            ins._$emitter(em, _pem)
 	            items = ins.$props()
 	        }
@@ -808,6 +791,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function NOOP() {}
+	function instanceOf(a, b) {
+	    return a instanceof b
+	}
 
 	module.exports = Mux
 
@@ -822,7 +808,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 **/
 	'use strict';
 
-	var $util = __webpack_require__(7)
+	var $util = __webpack_require__(6)
 	var _patch = $util.patch
 	var _type = $util.type
 	var _scopeDefault = '__default_scope__'
@@ -926,23 +912,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	/**
-	 *  Expect condition is truely
-	 *  @param cnd <Boolean>
-	 *  @param msg <String> *optional*
-	 */
-	function expect(cnd, msg) {
-	    if (!cnd) throw new Error(msg || 'Unexpect error')
-	}
-	module.exports = expect
-
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	/**
 	 *  normalize all access ways into dot access
 	 *  @example "person.books[1].title" --> "person.books.1.title"
 	 */
@@ -1010,12 +979,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var $util = __webpack_require__(7)
+	var $util = __webpack_require__(6)
 	var hookMethods = ['splice', 'push', 'pop', 'shift', 'unshift', 'reverse']
 	var hookFlag ='__hook__'
 
@@ -1046,7 +1015,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1068,7 +1037,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

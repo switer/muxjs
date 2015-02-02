@@ -454,5 +454,13 @@ module.exports = function (Mux, assert) {
             a.name = 'switer'
         })
     })
+    describe('$destroyed', function () {
+        it('$destroyed return true after destroy', function () {
+            var mux = new Mux()
+            assert(!mux.$destroyed())
+            mux.$destroy()
+            assert(mux.$destroyed())
+        })
+    })
 
 }
