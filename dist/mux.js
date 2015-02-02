@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.3.0
+* Mux.js v2.3.1
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -739,7 +739,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    proto.$destroy = function () {
 	        // clean up all proto methods
 	        $util.objEach(proto, function (k, v) {
-	            if ($util.type(v) == FUNCTION && k != '$isDestroy') proto[k] = _destroyNotice
+	            if ($util.type(v) == FUNCTION && k != '$destroyed') proto[k] = _destroyNotice
 	        })
 
 	        if (!_isExternalEmitter) emitter.off()
@@ -760,7 +760,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // destroy external flag
 	        _destroy = true
 	    }
-	    proto.$isDestroy = function () {
+	    proto.$destroyed = function () {
 	        return _destroy
 	    }
 	    /**
