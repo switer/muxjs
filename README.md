@@ -57,7 +57,7 @@ npm install muxjs --save
     - [$unwatch(\[propname, \] \[callback\])](#unwatchpropname--callback)
     - [$props( )](#props-)
     - [$destroy()](#destroy)
-    - [$isDestroyed](#isDestroyed)
+    - [$destroyed()](#destroyed)
 
 ## Wiki
 - [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
@@ -433,7 +433,7 @@ mux.$emitter(em)
 Destroy the instance, remove all listener of the internal emiter of the instance, free all props references.
 
 
-##### `$isDestroyed()`
+##### `$destroyed()`
 * Return: **Boolean**
 
 [ :bookmark:  API Reference Navigation](#api-reference)
