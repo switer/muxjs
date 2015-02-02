@@ -37,9 +37,10 @@ module.exports = function (Mux, assert) {
         })
         it('Change callback after set', function (done) {
             comment.$unwatch('title')
+            comment.$set('title','comment to that')
             comment.$watch('title', function (next, pre) {
-                assert.equal(pre, 'comment to that')
                 assert.equal(next, 'comment to this')
+                assert.equal(pre, 'comment to that')
                 assert.equal(comment.title, 'comment to this')
                 done()
             })
