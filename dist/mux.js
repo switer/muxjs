@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.2.5
+* Mux.js v2.3.0
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -155,9 +155,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _emitter = options._emitter || new $Message(model)
 	    var _isDeep = options.deep || !options.hasOwnProperty('deep') // default to true
 	    var __kp__ = options.__kp__
+	    var __muxid__ = allotId()
+	    var _isExternalEmitter =  !!options.emitter
+	    var _isExternalPrivateEmitter =  !!options._emitter
+	    var _destroy = false // destroy flag
 	    var proto = {
-	        '__muxid__': allotId()
+	        '__muxid__': __muxid__
 	    }
+
+
 	    $util.insertProto(model, proto)
 
 	    /**
@@ -179,6 +185,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else if (_t == OBJECT) {
 	        _initialProps = getter
 	    }
+	    // free
+	    getter = null
 
 	    var _initialComputedProps = options.computed
 	    var _computedProps = {}
@@ -205,22 +213,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _initialComputedProps = null
 
 	    /**
-	     *  local proxy for EventEmitter
-	     */
-	    function _emitChange(propname/*, arg1, ..., argX*/) {
-	        var args = arguments
-	        var evtArgs = $util.copyArray(args)
-	        var kp = $keypath.normalize($keypath.join(_rootPath(), propname))
-
-	        args[0] = CHANGE_EVENT + ':' + kp
-	        _emitter.emit(CHANGE_EVENT, kp)
-	        emitter.emit.apply(emitter, args)
-
-	        evtArgs[0] = kp
-	        evtArgs.unshift('*')
-	        emitter.emit.apply(emitter, evtArgs)
-	    }
-	    /**
 	     *  batch emit computed property change
 	     */
 	    _emitter.on(CHANGE_EVENT, function (kp) {
@@ -241,7 +233,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            if ($util.diff(next, pre)) _emitChange(ck, next, pre)
 	        })
-	    }, model.__muxid__/*scope*/)
+	    }, __muxid__/*scope*/)
+
+
+	    /**
+	     *  private methods
+	     */
+	    function _checkDestroy () {
+	        if (_destroy) {
+	            $info.warn('Instance already has bean destroyed')
+	            return true
+	        }
+	    }
+	    //  local proxy for EventEmitter
+	    function _emitChange(propname/*, arg1, ..., argX*/) {
+	        var args = arguments
+	        var evtArgs = $util.copyArray(args)
+	        var kp = $keypath.normalize($keypath.join(_rootPath(), propname))
+
+	        args[0] = CHANGE_EVENT + ':' + kp
+	        _emitter.emit(CHANGE_EVENT, kp)
+	        emitter.emit.apply(emitter, args)
+
+	        evtArgs[0] = kp
+	        evtArgs.unshift('*')
+	        emitter.emit.apply(emitter, evtArgs)
+	    }
 	    /**
 	     *  Add dependence to "_cptDepsMapping"
 	     *  @param propname <String> property name
@@ -252,8 +269,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	           return $info.warn('Dependency should not computed property')
 
 	        $util.patch(_cptDepsMapping, dep, [])
-	        if (~_cptDepsMapping[dep].indexOf(propname)) return
-	        _cptDepsMapping[dep].push(propname)
+	        var dest = _cptDepsMapping[dep]
+	        if (~dest.indexOf(propname)) return
+	        dest.push(propname)
 	    }
 	    /**
 	     *  Instance or reuse a sub-mux-instance with specified keyPath and emitter
@@ -264,7 +282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _subInstance (target, props, kp) {
 
 	        var ins
-	        if (target instanceof Mux && target.__kp__ === kp && target.__root__ == model.__muxid__) {
+	        if (target instanceof Mux && target.__kp__ === kp && target.__root__ == __muxid__) {
 	            // reuse
 	            ins = target
 	            // emitter proxy
@@ -283,7 +301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (ins.__root__ == undefined) {
 	            $util.def(ins, '__root__', {
 	                enumerable: false,
-	                value: model.__muxid__
+	                value: __muxid__
 	            })
 	        }
 	        return ins
@@ -413,6 +431,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    function _$set(kp, value) {
+	        if(_checkDestroy()) return
+
 	        var diff = _$sync(kp, value)
 	        if (!diff) return
 	        /**
@@ -535,6 +555,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param propsObj <Object>
 	     */
 	    proto.$add = function(/* [propname [, defaultValue]] | propnameArray | propsObj */) {
+	        if(_checkDestroy()) return
 	        var args = arguments
 	        var first = args[0]
 	        var pn, pv
@@ -570,7 +591,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (resetProps) _$setMulti(resetProps)
 	                break
 	            default:
-	                info.warn('Unexpect params')
+	                $info.warn('Unexpect params')
 	        }
 	        return this
 	    }
@@ -584,6 +605,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propsObj <Object> define multiple properties
 	         */
 	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
+	        if(_checkDestroy()) return
 	        if ($util.type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
 	        } else if ($util.type(propname) == OBJECT) {
@@ -603,6 +625,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kpMap <Object>
 	     */
 	    proto.$set = function( /*[kp, value] | [kpMap]*/ ) {
+	        if(_checkDestroy()) return
+
 	        var args = arguments
 	        var len = args.length
 	        if (len >= 2 || (len == 1 && $util.type(args[0]) == STRING)) {
@@ -622,6 +646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    proto.$get = function(kp) {
+	        if(_checkDestroy()) return
 	        if (~_observableKeys.indexOf(kp)) 
 	            return _props[kp]
 	        else if (~_computedKeys.indexOf(kp)) {
@@ -644,6 +669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$watch =  function( /*[key, ]callback*/ ) {
+	        if(_checkDestroy()) return
 	        var args = arguments
 	        var len = args.length
 	        var first = args[0]
@@ -658,8 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            $info.warn('Unexpect $watch params')
 	            return NOOP
 	        }
-
-	        emitter.on(key, callback, model.__muxid__/*scopre*/)
+	        emitter.on(key, callback, __muxid__/*scopre*/)
 	        var that = this
 	        // return a unsubscribe method
 	        return function() {
@@ -675,6 +700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param callback <Function>
 	     */
 	    proto.$unwatch = function( /*[key, ] [callback] */ ) {
+	        if(_checkDestroy()) return
 	        var args = arguments
 	        var len = args.length
 	        var first = args[0]
@@ -698,7 +724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                $info.warn('Unexpect param type of ' + first)
 	        }
 	        if (params) {
-	            params.push(model.__muxid__)
+	            params.push(__muxid__)
 	            emitter.off.apply(emitter, params)
 	        }
 	        return this
@@ -708,6 +734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @return <Object>
 	     */
 	    proto.$props = function() {
+	        if(_checkDestroy()) return
 	        return $util.copyObject(_props)
 	    }
 	    /**
@@ -715,6 +742,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param em <Object> emitter
 	     */
 	    proto.$emitter = function (em, _pem) {
+	        if(_checkDestroy()) return
 	        emitter = em
 	        _isDeep && _walkResetEmiter(this.$props(), em, _pem)
 	        return this
@@ -723,15 +751,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  set emitter directly
 	     */
 	    proto._$emitter = function (em) {
+	        if(_checkDestroy()) return
 	        emitter = em
 	    }
 	    /**
 	     *  set private emitter directly
 	     */
 	    proto._$_emitter = function (em) {
+	        if(_checkDestroy()) return
 	        em instanceof $Message && (_emitter = em)
 	    }
+	    proto.$destroy = function () {
+	        if (_destroy) return
 
+	        if (!_isExternalEmitter) emitter.off()
+	        else emitter.off(__muxid__)
+
+	        if (!_isExternalPrivateEmitter) _emitter.off()
+	        else _emitter.off(__muxid__)
+
+	        emitter = null
+	        _emitter = null
+	        _computedProps = null
+	        _computedKeys = null
+	        _cptDepsMapping = null
+	        _cptCaches = null
+	        _observableKeys = null
+	        _props = null
+	        _destroy = true
+	    }
 	    /**
 	     *  A shortcut of $set(props) while instancing
 	     */
@@ -780,15 +828,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _scopeDefault = '__default_scope__'
 
 	function Message(context) {
-	    this._observers = {}
+	    this._obs = {}
 	    this._context = context
 	}
 
 	Message.prototype.on = function(sub, cb, scope) {
 	    scope = scope || _scopeDefault
-	    _patch(this._observers, sub, [])
+	    _patch(this._obs, sub, [])
 
-	    this._observers[sub].push({
+	    this._obs[sub].push({
 	        cb: cb,
 	        scope: scope
 	    })
@@ -796,37 +844,36 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/**
 	 *  @param subject <String> subscribe type
-	 *  @param [cb] <Function> callback, Optional, if callback is not exist, 
-	 *      will remove all callback of that sub 
+	 *  @param [cb] <Function> callback, Optional, if callback is not exist,
+	 *      will remove all callback of that sub
 	 */
-	Message.prototype.off = function(subject, cb, scope) {
+	Message.prototype.off = function( /*subject, cb, scope*/ ) {
 	    var types
 	    var args = arguments
 	    var len = args.length
+	    var cb, scope
 
 	    if (len >= 3) {
 	        // clear all observers of this subject and callback eq "cb"
-	        types = [subject]
+	        types = [args[0]]
 	        cb = args[1]
 	        scope = args[2]
-
 	    } else if (len == 2 && _type(args[0]) == 'function') {
 	        // clear all observers those callback equal "cb"
-	        types = Object.keys(this._observers)
+	        types = Object.keys(this._obs)
 	        cb = args[0]
 	        scope = args[1]
-
 	    } else if (len == 2) {
 	        // clear all observers of this subject
-	        types = [subject]
+	        types = [args[0]]
 	        scope = args[1]
-	    } else if (len == 1){
+	    } else if (len == 1) {
 	        // clear all observes of the scope
-	        types = Object.keys(this._observers)
+	        types = Object.keys(this._obs)
 	        scope = args[0]
 	    } else {
 	        // clear all observes
-	        this._observers = []
+	        this._obs = []
 	        return this
 	    }
 
@@ -835,32 +882,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var that = this
 	    types.forEach(function(sub) {
 
-	        var obs = that._observers[sub]
+	        var obs = that._obs[sub]
 	        if (!obs) return
-
 	        var nextObs = []
 	        if (cb) {
 	            obs.forEach(function(observer) {
-	                if (observer.cb == cb && observer.scope == scope) {
+	                if (observer.cb === cb && observer.scope === scope) {
 	                    return
 	                }
 	                nextObs.push(observer)
 	            })
 	        } else {
-	            obs.forEach(function (observer) {
-	                if (observer.scope == scope) return
+	            obs.forEach(function(observer) {
+	                if (observer.scope === scope) return
 	                nextObs.push(observer)
 	            })
 	        }
 	        // if cb is not exist, clean all observers
-	        that._observers[sub] = nextObs
+	        that._obs[sub] = nextObs
 
 	    })
 
 	    return this
 	}
 	Message.prototype.emit = function(sub) {
-	    var obs = this._observers[sub]
+	    var obs = this._obs[sub]
 	    if (!obs) return
 	    var args = [].slice.call(arguments)
 	    args.shift()
