@@ -23,7 +23,7 @@ It's usefull, all right?
 ## Installation
 **browser:** 
 - [mux.js](https://raw.githubusercontent.com/switer/muxjs/master/dist/mux.js)
-- [mux.min.js](https://raw.githubusercontent.com/switer/muxjs/master/dist/mux.min.js) (3.8k when gzipped)
+- [mux.min.js](https://raw.githubusercontent.com/switer/muxjs/master/dist/mux.min.js) (4.1k when gzipped)
 
 ```html
 <script src="dist/mux.js"></script>
