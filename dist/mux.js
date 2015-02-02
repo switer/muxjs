@@ -79,6 +79,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $info = __webpack_require__(5)
 	var $util = __webpack_require__(6)
 	var $normalize = $keypath.normalize
+	var $join = $keypath.join
+	var $type = $util.type
+	var $indexOf = $util.indexOf
+	var $warn = $info.warn
 
 	/**
 	 *  CONTS
@@ -179,7 +183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Get initial props from options
 	     */
 	    var _initialProps = {}
-	    var _t = $util.type(getter)
+	    var _t = $type(getter)
 	    if (_t == FUNCTION) {
 	        _initialProps = getter()
 	    } else if (_t == OBJECT) {
@@ -221,7 +225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  get all computed props that depend on kp
 	         */
 	        ;(_cptDepsMapping[kp] || []).reduce(function (pv, cv) {
-	            if (!~pv.indexOf(cv)) pv.push(cv)
+	            if (!$indexOf(pv, cv)) pv.push(cv)
 	            return pv
 	        }, willComputedProps)
 
@@ -241,14 +245,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  private methods
 	     */
 	    function _destroyNotice () {
-	        $info.warn('Instance already has bean destroyed')
+	        $warn('Instance already has bean destroyed')
 	        return _destroy
 	    }
 	    //  local proxy for EventEmitter
 	    function _emitChange(propname/*, arg1, ..., argX*/) {
 	        var args = arguments
 	        var evtArgs = $util.copyArray(args)
-	        var kp = $normalize($keypath.join(_rootPath(), propname))
+	        var kp = $normalize($join(_rootPath(), propname))
 
 	        args[0] = CHANGE_EVENT + ':' + kp
 	        _emitter.emit(CHANGE_EVENT, kp)
@@ -264,12 +268,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param dep <String> dependency name
 	     */
 	    function _prop2CptDepsMapping (propname, dep) {
-	        if (~_computedKeys.indexOf(dep)) 
-	           return $info.warn('Dependency should not computed property')
+	        if ($indexOf(_computedKeys, dep)) 
+	           return $warn('Dependency should not computed property')
 
 	        $util.patch(_cptDepsMapping, dep, [])
 	        var dest = _cptDepsMapping[dep]
-	        if (~dest.indexOf(propname)) return
+	        if ($indexOf(dest, propname)) return
 	        dest.push(propname)
 	    }
 	    /**
@@ -313,9 +317,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param basePath <String> property's value mouted path
 	     */
 	    function _walk (name, value, basePath) {
-	        var tov = $util.type(value) // type of value
+	        var tov = $type(value) // type of value
 	        // initial path prefix is root path
-	        var kp = basePath ? basePath : $keypath.join(_rootPath(), name)
+	        var kp = basePath ? basePath : $join(_rootPath(), name)
 	        /**
 	         *  Array methods hook
 	         */
@@ -340,13 +344,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var obj = value
 	                if (instanceOf(value, Mux)) obj = value.$props()
 	                $util.objEach(obj, function (k, v) {
-	                    props[k] = _walk(k, v, $keypath.join(kp, k))
+	                    props[k] = _walk(k, v, $join(kp, k))
 	                })
 	                return _subInstance(value, props, kp)
 	            case ARRAY:
 	                // walk deep into array items
 	                value.forEach(function (item, index) {
-	                    value[index] = _walk(index, item, $keypath.join(kp, index))
+	                    value[index] = _walk(index, item, $join(kp, index))
 	                })
 	                return value
 	            default: 
@@ -366,13 +370,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var parts = $normalize(kp).split('.')
 	        var prop = parts[0]
 
-	        if (~_computedKeys.indexOf(prop)) {
-	            $info.warn('Can\'t set value to computed property "' + prop + '"')
+	        if ($indexOf(_computedKeys, prop)) {
+	            $warn('Can\'t set value to computed property "' + prop + '"')
 	            // return false means sync prop fail
 	            return false
 	        }
-	        if (!~_observableKeys.indexOf(prop)) {
-	            $info.warn('Property "' + prop + '" has not been observed')
+	        if (!$indexOf(_observableKeys, prop)) {
+	            $warn('Property "' + prop + '" has not been observed')
 	            // return false means sync prop fail
 	            return false
 	        }
@@ -390,7 +394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    tar.$add(key, v)
 	                }
 	                return
-	            } else if (_isDeep && $util.type(tar) == ARRAY && key.match(/^\d+$/)) {
+	            } else if (_isDeep && $type(tar) == ARRAY && key.match(/^\d+$/)) {
 	                isArrayChange = true
 	                piv = tar[key]
 	            }
@@ -436,7 +440,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function _$setMulti(keyMap) {
 	        if (_destroy) return _destroyNotice()
 
-	        if (!keyMap || $util.type(keyMap) != OBJECT) return
+	        if (!keyMap || $type(keyMap) != OBJECT) return
 	        $util.objEach(keyMap, function (key, item) {
 	            _$set(key, item)
 	        })
@@ -452,7 +456,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            throw new Error('Propname shoudn\'t contains "." or "[" or "]"')
 	        }
 
-	        if (~_observableKeys.indexOf(prop)) {
+	        if ($indexOf(_observableKeys, prop)) {
 	            // If value is specified, reset value
 	            return arguments.length > 1 ? true : false
 	        }
@@ -480,17 +484,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function _$computed (propname, deps, fn, enumerable) {
 	        // switch (false) {
-	        //     case ($util.type(propname) == STRING): 
-	        //         $info.warn('Propname\'s should be "String"')
-	        //     case ($util.type(deps) == ARRAY): 
-	        //         $info.warn('"deps" should be "Array"')
-	        //     case ($util.type(fn) == FUNCTION):
-	        //         $info.warn('"fn" should be "Function"')
+	        //     case ($type(propname) == STRING): 
+	        //         $warn('Propname\'s should be "String"')
+	        //     case ($type(deps) == ARRAY): 
+	        //         $warn('"deps" should be "Array"')
+	        //     case ($type(fn) == FUNCTION):
+	        //         $warn('"fn" should be "Function"')
 	        // }
 	        /**
 	         *  property is exist
 	         */
-	        if (~_computedKeys.indexOf(propname)) return
+	        if ($indexOf(_computedKeys, propname)) return
 
 	        _computedKeys.push(propname)
 	        _computedProps[propname] = {
@@ -520,7 +524,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return dest.cur
 	            },
 	            set: function () {
-	                $info.warn('Can\'t set value to computed property')
+	                $warn('Can\'t set value to computed property')
 	            }
 	        })
 	        // emit change event when define
@@ -544,7 +548,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var first = args[0]
 	        var pn, pv
 
-	        switch($util.type(first)) {
+	        switch($type(first)) {
 	            case STRING:
 	                // with specified value or not
 	                pn = first
@@ -575,7 +579,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (resetProps) _$setMulti(resetProps)
 	                break
 	            default:
-	                $info.warn('Unexpect params')
+	                $warn('Unexpect params')
 	        }
 	        return this
 	    }
@@ -589,14 +593,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  @param propsObj <Object> define multiple properties
 	         */
 	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
-	        if ($util.type(propname) == STRING) {
+	        if ($type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
-	        } else if ($util.type(propname) == OBJECT) {
+	        } else if ($type(propname) == OBJECT) {
 	            $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
 	                _$computed(pn, pv.deps, pv.fn, pv.enum)
 	            })
 	        } else {
-	            $info.warn('$computed params show be "(String, Array, Function)" or "(Object)"')
+	            $warn('$computed params show be "(String, Array, Function)" or "(Object)"')
 	        }
 	        return this
 	    }
@@ -611,12 +615,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var args = arguments
 	        var len = args.length
-	        if (len >= 2 || (len == 1 && $util.type(args[0]) == STRING)) {
+	        if (len >= 2 || (len == 1 && $type(args[0]) == STRING)) {
 	            _$set(args[0], args[1])
-	        } else if (len == 1 && $util.type(args[0]) == OBJECT) {
+	        } else if (len == 1 && $type(args[0]) == OBJECT) {
 	            _$setMulti(args[0])
 	        } else {
-	            $info.warn('Unexpect $set params')
+	            $warn('Unexpect $set params')
 	        }
 
 	        return this
@@ -628,15 +632,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     */
 	    proto.$get = function(kp) {
-	        if (~_observableKeys.indexOf(kp)) 
+	        if ($indexOf(_observableKeys, kp)) 
 	            return _props[kp]
-	        else if (~_computedKeys.indexOf(kp)) {
+	        else if ($indexOf(_computedKeys, kp)) {
 	            return (_computedProps[kp].fn || NOOP).call(model, model)
 	        } else {
 	            // keyPath
 	            var normalKP = $normalize(kp)
 	            var parts = normalKP.split('.')
-	            if (!~_observableKeys.indexOf(parts[0])) {
+	            if (!$indexOf(_observableKeys, parts[0])) {
 	                return
 	            } else {
 	                return $keypath.get(_props, normalKP)
@@ -655,13 +659,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var first = args[0]
 	        var key, callback
 	        if (len >= 2) {
-	            key = 'change:' + $normalize($keypath.join(_rootPath(), first))
+	            key = 'change:' + $normalize($join(_rootPath(), first))
 	            callback = args[1]
-	        } else if (len == 1 && $util.type(first) == FUNCTION) {
+	        } else if (len == 1 && $type(first) == FUNCTION) {
 	            key = '*'
 	            callback = first
 	        } else {
-	            $info.warn('Unexpect $watch params')
+	            $warn('Unexpect $watch params')
 	            return NOOP
 	        }
 	        emitter.on(key, callback, __muxid__/*scopre*/)
@@ -688,19 +692,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        switch (true) {
 	            case (len >= 2):
 	                params = [args[1]]
-	            case (len == 1 && $util.type(first) == STRING):
+	            case (len == 1 && $type(first) == STRING):
 	                !params && (params = [])
-	                prefix = CHANGE_EVENT + ':' + $normalize($keypath.join(_rootPath(), first))
+	                prefix = CHANGE_EVENT + ':' + $normalize($join(_rootPath(), first))
 	                params.unshift(prefix)
 	                break
-	            case (len == 1 && $util.type(first) == FUNCTION):
+	            case (len == 1 && $type(first) == FUNCTION):
 	                params = ['*', first]
 	                break
 	            case (len == 0):
 	                params = []
 	                break
 	            default:
-	                $info.warn('Unexpect param type of ' + first)
+	                $warn('Unexpect param type of ' + first)
 	        }
 	        if (params) {
 	            params.push(__muxid__)
@@ -739,7 +743,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    proto.$destroy = function () {
 	        // clean up all proto methods
 	        $util.objEach(proto, function (k, v) {
-	            if ($util.type(v) == FUNCTION && k != '$destroyed') proto[k] = _destroyNotice
+	            if ($type(v) == FUNCTION && k != '$destroyed') proto[k] = _destroyNotice
 	        })
 
 	        if (!_isExternalEmitter) emitter.off()
@@ -774,7 +778,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param ins <Mux>
 	 */
 	function _walkResetEmiter (ins, em, _pem) {
-	    if ($util.type(ins) == OBJECT) {
+	    if ($type(ins) == OBJECT) {
 	        var items = ins
 	        if (instanceOf(ins, Mux)) {
 	            ins._$emitter(em, _pem)
@@ -783,7 +787,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        $util.objEach(items, function (k, v) {
 	            _walkResetEmiter(v, em, _pem)
 	        })
-	    } else if ($util.type(ins) == ARRAY) {
+	    } else if ($type(ins) == ARRAY) {
 	        ins.forEach(function (v) {
 	            _walkResetEmiter(v, em, _pem)
 	        })
@@ -1060,12 +1064,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    diff: function (next, pre) {
 	        return next !== pre || next instanceof Object
 	    },
-	    merge: function (dest, source) {
-	        this.objEach(source, function (k, v) {
-	            dest[k] = v
-	        })
-	        return dest
-	    },
 	    copyArray: function (arr) {
 	        var len = arr.length
 	        var nArr = new Array(len)
@@ -1096,6 +1094,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    def: function () {
 	        return Object.defineProperty.apply(Object, arguments)
+	    },
+	    indexOf: function (a, b) {
+	        return ~a.indexOf(b)
 	    }
 	}
 
