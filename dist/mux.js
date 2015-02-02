@@ -87,6 +87,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var ARRAY = 'array'
 	var OBJECT = 'object'
 	var FUNCTION = 'function'
+	var CHANGE_EVENT = 'change'
 
 	var _id = 0
 	function allotId() {
@@ -172,9 +173,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Get initial props from options
 	     */
 	    var _initialProps = {}
-	    if ($util.type(getter) == FUNCTION) {
+	    var _t = $util.type(getter)
+	    if (_t == FUNCTION) {
 	        _initialProps = getter()
-	    } else if ($util.type(getter) == OBJECT) {
+	    } else if (_t == OBJECT) {
 	        _initialProps = getter
 	    }
 
@@ -202,7 +204,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    })
 	    _initialComputedProps = null
 
-
 	    /**
 	     *  local proxy for EventEmitter
 	     */
@@ -211,8 +212,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var evtArgs = $util.copyArray(args)
 	        var kp = $keypath.normalize($keypath.join(_rootPath(), propname))
 
-	        args[0] = 'change:' + kp
-	        _emitter.emit('change', kp)
+	        args[0] = CHANGE_EVENT + ':' + kp
+	        _emitter.emit(CHANGE_EVENT, kp)
 	        emitter.emit.apply(emitter, args)
 
 	        evtArgs[0] = kp
@@ -222,7 +223,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  batch emit computed property change
 	     */
-	    _emitter.on('change', function (kp) {
+	    _emitter.on(CHANGE_EVENT, function (kp) {
 	        var willComputedProps = []
 	        /**
 	         *  get all computed props that depend on kp
@@ -234,12 +235,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        willComputedProps.forEach(function (ck) {
 	            $util.patch(_cptCaches, ck, {})
-	            var pre = _cptCaches[ck].pre = _cptCaches[ck].current
-	            var next = _cptCaches[ck].current = (_computedProps[ck].fn || NOOP).call(model, model)
+	            var cache = _cptCaches[ck]
+	            var pre = cache.pre = cache.current
+	            var next = cache.current = (_computedProps[ck].fn || NOOP).call(model, model)
 
 	            if ($util.diff(next, pre)) _emitChange(ck, next, pre)
 	        })
-	    })
+	    }, model.__muxid__/*scope*/)
 	    /**
 	     *  Add dependence to "_cptDepsMapping"
 	     *  @param propname <String> property name
@@ -656,8 +658,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            $info.warn('Unexpect $watch params')
 	            return NOOP
 	        }
-	        emitter.on(key, callback)
 
+	        emitter.on(key, callback, model.__muxid__/*scopre*/)
 	        var that = this
 	        // return a unsubscribe method
 	        return function() {
@@ -678,24 +680,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var first = args[0]
 	        var params
 	        var prefix
-	        if (len >= 2) {
-	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
-	            // key + callback
-	            params = ['change:' + prefix, args[1]]
-	        } else if (len == 1 && $util.type(first) == STRING) {
-	            prefix = $keypath.normalize($keypath.join(_rootPath(), first))
-	            // key
-	            params = ['change:' + prefix]
-	        } else if (len == 1 && $util.type(first) == FUNCTION) {
-	            // callback
-	            params = ['*', first]
-	        } else if (len == 0) {
-	            // all
-	            params = []
-	        } else {
-	            $info.warn('Unexpect param type of ' + first)
+	        switch (true) {
+	            case (len >= 2):
+	                params = [args[1]]
+	            case (len == 1 && $util.type(first) == STRING):
+	                !params && (params = [])
+	                prefix = CHANGE_EVENT + ':' + $keypath.normalize($keypath.join(_rootPath(), first))
+	                params.unshift(prefix)
+	                break
+	            case (len == 1 && $util.type(first) == FUNCTION):
+	                params = ['*', first]
+	                break
+	            case (len == 0):
+	                params = []
+	                break
+	            default:
+	                $info.warn('Unexpect param type of ' + first)
 	        }
 	        if (params) {
+	            params.push(model.__muxid__)
 	            emitter.off.apply(emitter, params)
 	        }
 	        return this
@@ -728,6 +731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    proto._$_emitter = function (em) {
 	        em instanceof $Message && (_emitter = em)
 	    }
+
 	    /**
 	     *  A shortcut of $set(props) while instancing
 	     */
@@ -773,17 +777,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $util = __webpack_require__(7)
 	var _patch = $util.patch
 	var _type = $util.type
+	var _scopeDefault = '__default_scope__'
 
 	function Message(context) {
 	    this._observers = {}
 	    this._context = context
 	}
 
-	Message.prototype.on = function(sub, cb) {
+	Message.prototype.on = function(sub, cb, scope) {
+	    scope = scope || _scopeDefault
 	    _patch(this._observers, sub, [])
 
 	    this._observers[sub].push({
-	        cb: cb
+	        cb: cb,
+	        scope: scope
 	    })
 	}
 
@@ -792,26 +799,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  @param [cb] <Function> callback, Optional, if callback is not exist, 
 	 *      will remove all callback of that sub 
 	 */
-	Message.prototype.off = function(subject, cb) {
+	Message.prototype.off = function(subject, cb, scope) {
 	    var types
 	    var args = arguments
-
 	    var len = args.length
-	    if (len >= 2) {
+
+	    if (len >= 3) {
 	        // clear all observers of this subject and callback eq "cb"
 	        types = [subject]
-	    } else if (len == 1 && _type(args[0]) == 'function') {
+	        cb = args[1]
+	        scope = args[2]
+
+	    } else if (len == 2 && _type(args[0]) == 'function') {
 	        // clear all observers those callback equal "cb"
-	        cb = args[0]
 	        types = Object.keys(this._observers)
-	    } else if (len == 1) {
+	        cb = args[0]
+	        scope = args[1]
+
+	    } else if (len == 2) {
 	        // clear all observers of this subject
 	        types = [subject]
+	        scope = args[1]
+	    } else if (len == 1){
+	        // clear all observes of the scope
+	        types = Object.keys(this._observers)
+	        scope = args[0]
 	    } else {
-	        // clear all
+	        // clear all observes
 	        this._observers = []
 	        return this
 	    }
+
+	    scope = scope || _scopeDefault
 
 	    var that = this
 	    types.forEach(function(sub) {
@@ -822,9 +841,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var nextObs = []
 	        if (cb) {
 	            obs.forEach(function(observer) {
-	                if (observer.cb !== cb) {
-	                    nextObs.push(observer)
+	                if (observer.cb == cb && observer.scope == scope) {
+	                    return
 	                }
+	                nextObs.push(observer)
+	            })
+	        } else {
+	            obs.forEach(function (observer) {
+	                if (observer.scope == scope) return
+	                nextObs.push(observer)
 	            })
 	        }
 	        // if cb is not exist, clean all observers
