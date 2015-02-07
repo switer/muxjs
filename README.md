@@ -415,15 +415,17 @@ mux.$props() // --> {name: 'Muxjs'}
 ```
 
 ##### `$emitter(emitter)`
-* Return: **this**
+* Return: **this** | **emitter**
 
 [ :bookmark:  API Reference Navigation](#api-reference)
 
-Reset emitter of the mux instance
+Reset emitter of the mux instance. If arguments is empty, return the emitter of the instance.
 ```js
 var mux = Mux()
 var em = Mux.emitter()
 mux.$emitter(em)
+
+var muxEmitter = mux.$emitter() // equal to em
 ```
 
 ##### `$destroy()`
