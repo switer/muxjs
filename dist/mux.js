@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.3.2
+* Mux.js v2.3.3
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -724,6 +724,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param em <Object> emitter
 	     */
 	    proto.$emitter = function (em, _pem) {
+	        // return emitter instance if args is empty, 
+	        // for share some emitter with other instance
+	        if (arguments.length == 0) return emitter
 	        emitter = em
 	        _isDeep && _walkResetEmiter(this.$props(), em, _pem)
 	        return this
