@@ -70,5 +70,27 @@ module.exports = function (Mux, assert) {
             })
             person.$set('email', 'none')
         })
+        it('Bind ComputedContext correctly', function () {
+            var ctx = {}
+            var m = new Mux({
+                computedContext: ctx,
+                props: {
+                    items: [1,2,3]
+                },
+                computed: {
+                    len: {
+                        deps: ['data'],
+                        get: function () {
+                            assert(ctx === this)
+                            return 3
+                        },
+                        set: function () {
+                            assert(ctx === this)
+                        }
+                    }
+                }
+            })
+            assert.equal(m.len, 3)
+        })
     })
 }
