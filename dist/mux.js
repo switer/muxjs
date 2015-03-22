@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.0
+* Mux.js v2.4.1
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -82,6 +82,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var $join = $keypath.join
 	var $type = $util.type
 	var $indexOf = $util.indexOf
+	var $hasOwn = $util.hasOwn
 	var $warn = $info.warn
 
 	/**
@@ -157,7 +158,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var model = this
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _emitter = options._emitter || new $Message(model)
-	    var _isDeep = options.deep || !options.hasOwnProperty('deep') // default to true
+	    var _isDeep = options.deep || !$hasOwn(options,'deep') // default to true
+	    var _computedCtx = $hasOwn(options, 'computedContext') ? options.computedContext : model
 	    var __kp__ = options.__kp__
 	    var __muxid__ = allotId()
 	    var _isExternalEmitter =  !!options.emitter
@@ -388,7 +390,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            v = $util.copyValue(value)
 
 	            if (instanceOf(tar, Mux)) {
-	                if (tar.hasOwnProperty(key)) {
+	                if ($hasOwn(tar, key)) {
 	                    tar.$set(key, v)
 	                } else {
 	                    tar.$add(key, v)
@@ -509,7 +511,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        $util.patch(_cptCaches, propname, {})
 	        var dest = _cptCaches[propname]
-	        dest.cur = getFn ? getFn.call(model, model):undefined
+	        dest.cur = getFn ? getFn.call(_computedCtx, model):undefined
 
 	        $util.def(model, propname, {
 	            enumerable: enumerable === undefined ? true : !!enumerable,
@@ -517,7 +519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return dest.cur
 	            },
 	            set: function () {
-	                setFn && setFn.apply(model, arguments)
+	                setFn && setFn.apply(_computedCtx, arguments)
 	            }
 	        })
 	        // emit change event when define
@@ -1041,7 +1043,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-
+	function hasOwn (obj, prop) {
+	    return obj && obj.hasOwnProperty(prop)
+	}
 	module.exports = {
 	    type: function (obj) {
 	        return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase()
@@ -1049,7 +1053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    objEach: function (obj, fn) {
 	        if (!obj) return
 	        for(var key in obj) {
-	            if (obj.hasOwnProperty(key)) {
+	            if (hasOwn(obj, key)) {
 	                fn(key, obj[key])
 	            }
 	        }
@@ -1100,7 +1104,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            to[k] = v
 	        })
 	        return to
-	    }
+	    },
+	    hasOwn: hasOwn
 	}
 
 /***/ }
