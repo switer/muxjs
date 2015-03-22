@@ -14,7 +14,7 @@ module.exports = function (Mux, assert) {
         computed:  {
             replies: {
                 deps: ['replyUsers'],
-                fn: function () {
+                get: function () {
                     return this.replyUsers.length
                 }
             }
@@ -260,7 +260,7 @@ module.exports = function (Mux, assert) {
                     total: {
                         enum: false,
                         deps: ['nums'],
-                        fn: function () {
+                        get: function () {
                             return this.nums.length
                         }
                     }
@@ -334,18 +334,27 @@ module.exports = function (Mux, assert) {
             })
             comment.title = 'hello'
         })
+        it('Define a computed property with setter', function () {
+            comment.$unwatch()
+            comment.$add('namecount', 0)
+            comment.$computed('computedSetter', [], function () {}, function (v) {
+                comment.$set('namecount', v)
+            })
+            comment.computedSetter = 10
+            assert.equal(comment.namecount, 10)
+        })
         it('Define multiple computed properties', function (done) {
             comment.$unwatch()
             comment.$computed({
                 'computed2': {
                     deps:['title'], 
-                    fn: function () {
+                    get: function () {
                         return 'Guankaishe say:' + this.title
                     }
                 },
                 'computed3': {
                     deps:['title'], 
-                    fn: function () {
+                    get: function () {
                         return 'Switer say:' + this.title
                     }
                 }
@@ -371,16 +380,16 @@ module.exports = function (Mux, assert) {
                 computed: {
                     nameLength: {
                         deps: ['name'],
-                        fn: function () {
+                        get: function () {
                             return this.name.length
                         }
                     }
                 }
             })
+
             var props = mux.$props()
             assert.equal(props.name, 'switer')
             assert.equal(props.nameLength, undefined)
-
         })
     })
 

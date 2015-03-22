@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.3.3
+* Mux.js v2.4.0
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -212,7 +212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  Define initial computed properties
 	     */
 	    $util.objEach(_initialComputedProps, function (pn, def) {
-	        _$computed(pn, def.deps, def.fn, def.enum)
+	        _$computed(pn, def.deps, def.get, def.set, def.enum)
 	    })
 	    _initialComputedProps = null
 
@@ -234,7 +234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            var cache = _cptCaches[ck]
 	            var pre = cache.pre = cache.cur
-	            var next = cache.cur = (_computedProps[ck].fn || NOOP).call(model, model)
+	            var next = cache.cur = (_computedProps[ck].get || NOOP).call(model, model)
 
 	            if ($util.diff(next, pre)) _emitChange(ck, next, pre)
 	        })
@@ -371,8 +371,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var prop = parts[0]
 
 	        if ($indexOf(_computedKeys, prop)) {
-	            $warn('Can\'t set value to computed property "' + prop + '"')
-	            // return false means sync prop fail
+	            // since Mux@2.4.0 computed property support setter
+	            model[prop] = value
 	            return false
 	        }
 	        if (!$indexOf(_observableKeys, prop)) {
@@ -482,15 +482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param fn <Function> computed property getter
 	     *  @param enumerable <Boolean> whether property enumerable or not
 	     */
-	    function _$computed (propname, deps, fn, enumerable) {
-	        // switch (false) {
-	        //     case ($type(propname) == STRING): 
-	        //         $warn('Propname\'s should be "String"')
-	        //     case ($type(deps) == ARRAY): 
-	        //         $warn('"deps" should be "Array"')
-	        //     case ($type(fn) == FUNCTION):
-	        //         $warn('"fn" should be "Function"')
-	        // }
+	    function _$computed (propname, deps, getFn, setFn, enumerable) {
 	        /**
 	         *  property is exist
 	         */
@@ -499,7 +491,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _computedKeys.push(propname)
 	        _computedProps[propname] = {
 	            'deps': deps, 
-	            'fn': fn
+	            'get': getFn,
+	            'set': setFn
 	        }
 
 	        /**
@@ -516,7 +509,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        $util.patch(_cptCaches, propname, {})
 	        var dest = _cptCaches[propname]
-	        dest.cur = fn ? fn.call(model, model):undefined
+	        dest.cur = getFn ? getFn.call(model, model):undefined
 
 	        $util.def(model, propname, {
 	            enumerable: enumerable === undefined ? true : !!enumerable,
@@ -524,7 +517,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return dest.cur
 	            },
 	            set: function () {
-	                $warn('Can\'t set value to computed property')
+	                setFn && setFn.apply(model, arguments)
 	            }
 	        })
 	        // emit change event when define
@@ -592,15 +585,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	         *  --------------------------------------------------
 	         *  @param propsObj <Object> define multiple properties
 	         */
-	    proto.$computed = function (propname, deps, fn, enumerable/* | [propsObj]*/) {
+	    proto.$computed = function (propname, deps, getFn, setFn, enumerable/* | [propsObj]*/) {
 	        if ($type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
 	        } else if ($type(propname) == OBJECT) {
-	            $util.objEach(arguments[0], function (pn, pv/*propname, propnamevalue*/) {
-	                _$computed(pn, pv.deps, pv.fn, pv.enum)
+	            $util.objEach(arguments[0], function (pn, pv /*propname, propnamevalue*/) {
+	                _$computed(pn, pv.deps, pv.get, pv.set, pv.enum)
 	            })
 	        } else {
-	            $warn('$computed params show be "(String, Array, Function)" or "(Object)"')
+	            $warn('$computed params show be "(String, Array, Function, Function)" or "(Object)"')
 	        }
 	        return this
 	    }
@@ -635,7 +628,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if ($indexOf(_observableKeys, kp)) 
 	            return _props[kp]
 	        else if ($indexOf(_computedKeys, kp)) {
-	            return (_computedProps[kp].fn || NOOP).call(model, model)
+	            return (_computedProps[kp].get || NOOP).call(model, model)
 	        } else {
 	            // keyPath
 	            var normalKP = $normalize(kp)
@@ -1100,6 +1093,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    indexOf: function (a, b) {
 	        return ~a.indexOf(b)
+	    },
+	    merge: function (to, from) {
+	        if (!from) return to
+	        this.objEach(from, function (k, v) {
+	            to[k] = v
+	        })
+	        return to
 	    }
 	}
 

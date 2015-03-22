@@ -12,7 +12,7 @@ module.exports = function (Mux, assert) {
         computed:  {
             replies: {
                 deps: ['replyUsers'],
-                fn: function () {
+                get: function () {
                     return this.replyUsers.length
                 }
             }

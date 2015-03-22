@@ -52,7 +52,7 @@ npm install muxjs --save
     - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
     - [$get(propname)](#computed)
     - [$add(\[propname \[, defaultValue\]\] | propnameArray | propsObj)](#addpropname--defaultvalue--propnamearray--propsobj)
-    - [$computed(\[propname, deps, fn, enum\] | computedPropsObj)](#computedpropname-deps-fn-enum--computedpropsobj)
+    - [$computed(\[propname, deps, get, set, enum\] | computedPropsObj)](#computedpropname-deps-get-set-enum--computedpropsobj)
     - [$watch(\[propname, \] callback)](#watchpropname--callback)
     - [$unwatch(\[propname, \] \[callback\])](#unwatchpropname--callback)
     - [$props( )](#props-)
@@ -330,11 +330,12 @@ mux.$add(['name']) // without default value
 mux.$add({ 'name': 'switer' })
 ```
 
-##### `$computed([propname, deps, fn, enum] | computedPropsObj)`
+##### `$computed([propname, deps, get, set, enum] | computedPropsObj)`
 * Params:
     - **propname** `String` property name
     - **deps** `Array` Property's dependencies
-    - **fn** `Function` Getter function
+    - **get** `Function` Getter function
+    - **set** `Function` Setter function
     - **enum** `Boolean` whether the computed property enumerable or not 
     - *or*
     - **computedPropsObj** `Object` 
