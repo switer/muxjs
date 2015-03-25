@@ -46,7 +46,6 @@ npm install muxjs --save
 - **[Instance Options](#instance-options)**
     - [props](#props)
     - [computed](#computed)
-    - [deep](#deep)
     - [emitter](#emitter)
 - **[Instance Methods](#instance-methods)**
     - [$set(\[keyPath, value\] | props)](#setkeypath-value--props)
@@ -209,19 +208,6 @@ mux.$watch('count', function (next, pre) {
 })
 mux.items.push(4)
 assert.equal(mux.count, 4)
-```
-
-##### `deep`
-- Type: ` Boolean`
-
-[ :bookmark:  API Reference Navigation](#api-reference)
-
-Deep observe for `prop`/`subprop` type of `Object`|`Array`.Default is `true`. See: [Deep observe](https://github.com/switer/muxjs/wiki/Deep-observe)
-```js
-new Mux({
-    deep: false, // disable deep observe
-    props: {}
-})
 ```
 
 ##### `emitter`

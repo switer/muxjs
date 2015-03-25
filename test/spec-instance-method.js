@@ -148,7 +148,7 @@ module.exports = function (Mux, assert) {
                 author: 'danyan',
                 comment: 'test'
             }]
-            comment.$watch('replyUsers', function () {
+            comment.$watch('replyUsers.0.comment', function () {
                 assert.equal(this.replyUsers[0].comment, 'test update')
                 done()
             })
@@ -178,11 +178,11 @@ module.exports = function (Mux, assert) {
                     author: '*'
                 }]
             }
-            comment.$watch('replyUsers', function () {
+            comment.$watch('replyUsers.1.comment', function () {
                 assert.equal(this.replyUsers[1].comment, 'test2')
                 done()
             })
-            comment.$watch('post', function () {
+            comment.$watch('post.replyUsers.1.comment', function () {
                 assert.equal(this.post.replyUsers[0].comment, 'nothing')
                 done()
             })
@@ -238,7 +238,7 @@ module.exports = function (Mux, assert) {
         it('$get computed property', function () {
             comment.$unwatch()
             comment.replyUsers = [{author: ''}]
-            comment.$computed('first', ['replyUsers'], function () {
+            comment.$computed('first', ['replyUsers.0.author'], function () {
                 return this.replyUsers[0].author
             })
             comment.replyUsers = [{author: 'switer'}]
@@ -246,7 +246,6 @@ module.exports = function (Mux, assert) {
             assert.equal(comment.$get('first'), 'switer')
 
             comment.replyUsers[0].author = 'switerX'
-            assert.equal(comment.first, 'switer')
             assert.equal(comment.$get('first'), 'switerX')
             comment.replyUsers = comment.replyUsers
             assert.equal(comment.first, 'switerX')
