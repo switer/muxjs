@@ -4,11 +4,11 @@
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
-    "test": "npm run mocha && npm run cover",
+    "test": "npm run mocha",
     "mocha": "mocha test/index.js",
     "mocha-dist": "mocha test/index.dist.js",
     "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
-    "cover": "./node_modules/mocha/bin/_mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
+    "cover": "_mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
     "cover-html": "mocha --require blanket --reporter html-cov ./test/index.js > coverage.html"
   },
   "repository": {
@@ -26,8 +26,8 @@
   },
   "homepage": "https://github.com/switer/mux",
   "devDependencies": {
-    "blanket": "1.1.6",
-    "coveralls": "2.11.2",
+    "blanket": "^1.1.6",
+    "coveralls": "^2.11.2",
     "gulp": "^3.8.10",
     "gulp-concat": "^2.4.3",
     "gulp-header": "^1.2.2",
