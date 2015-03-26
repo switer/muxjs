@@ -26,8 +26,8 @@
   },
   "homepage": "https://github.com/switer/mux",
   "devDependencies": {
-    "blanket": "^1.1.6",
-    "coveralls": "^2.11.2",
+    "blanket": "1.1.6",
+    "coveralls": "2.11.2",
     "gulp": "^3.8.10",
     "gulp-concat": "^2.4.3",
     "gulp-header": "^1.2.2",
