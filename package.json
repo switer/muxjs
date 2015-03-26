@@ -8,7 +8,7 @@
     "mocha": "mocha test/index.js",
     "mocha-dist": "mocha test/index.dist.js",
     "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
-    "cover": "mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
+    "cover": "./node_modules/mocha/bin/_mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
     "cover-html": "mocha --require blanket --reporter html-cov ./test/index.js > coverage.html"
   },
   "repository": {
