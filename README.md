@@ -33,7 +33,7 @@ It's usefull, all right?
 npm install muxjs --save
 ```
 ## Examples:
-- [Zect](https://github.com/switer/Zect) Vue.js, way.js like
+- [Zect](https://github.com/switer/Zect) Vue.js like
 - [virtual-dom-binding](https://github.com/switer/virtual-dom-binding) render view with virtual-dom
 - [data-dom-binding](https://github.com/switer/data-dom-binding) zepto do DOM maniputation
 
@@ -73,8 +73,8 @@ It is a constructor function that allows you to create Mux instance.*`options`* 
 
 ```js
 var author = new Mux({
-    props: function () {
-        return 'firstName lastName' 
+    props: {
+        name: 'firstName lastName'
     },
     computed: {
         firstName: {
@@ -99,7 +99,7 @@ Create a *subclass* of the base Mux constructor. *`options`* see: [Instance Opti
 
 ```js
 var Person = Mux.extend({
-    props: function () {
+    props: {
         profession: 'programer',
         name: ''
     }
