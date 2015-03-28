@@ -117,6 +117,7 @@ module.exports = function (Mux, assert) {
                     email: ''
                 }
             })
+            mux.name = '123'
             em.on('change:email', function (next) {
                 assert(initChange)
                 assert.equal(next, 'guankaishe@gmail.com')
