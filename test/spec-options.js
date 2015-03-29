@@ -84,6 +84,16 @@ module.exports = function (Mux, assert) {
             })
             comment.nums.reverse()
         })
+        it('Array .$concat() hook', function (done) {
+            comment.$unwatch()
+            comment.$set('nums', [1,2])
+            comment.$watch('nums', function (next) {
+                assert.equal(next[2], 3)
+                assert.equal(next[3], 4)
+                done()
+            })
+            comment.nums.$concat(3, [4])
+        })
     })
     describe('[computed]', function () {
         it('Default replies is 0', function () {
