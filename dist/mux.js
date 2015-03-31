@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.10
+* Mux.js v2.4.11
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -1089,7 +1089,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!obj) return
 	        for(var key in obj) {
 	            if (hasOwn(obj, key)) {
-	                fn(key, obj[key])
+	                if(fn(key, obj[key]) === false) break
 	            }
 	        }
 	    },
