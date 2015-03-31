@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.9
+* Mux.js v2.4.10
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -138,6 +138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  Expose Keypath API
 	 */
 	Mux.keyPath = $keypath
+	Mux.utils = $util
 
 	/**
 	 *  Mux model factory

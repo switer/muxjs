@@ -1,6 +1,6 @@
 {
   "name": "muxjs",
-  "version": "2.4.9",
+  "version": "2.4.10",
   "description": "Modeling app states with muxjs.",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "dist": "browserify --standalone Mux ./index.js > dist/mux.js && uglifyjs -c hoist_vars=true dist/mux.js > dist/mux.min.js",
     "cover": "_mocha --require blanket --reporter mocha-lcov-reporter ./test/index.js | ./node_modules/coveralls/bin/coveralls.js",
     "cover-html": "mocha --require blanket --reporter html-cov ./test/index.js > coverage.html",
-    "release": "git push && git push --tag && npm publish"
+    "release": "git push && git push --tag && npm publish",
+    "prepublish": "npm test"
   },
   "repository": {
     "type": "git",
