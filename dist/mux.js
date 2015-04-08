@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.12
+* Mux.js v2.4.13
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -1157,11 +1157,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            case 'array': return this.copyArray(v)
 	            default: return v
 	        }
-	    },
-	    insertProto: function (obj, proto) {
-	        var end = obj.__proto__
-	        obj.__proto__ = proto
-	        obj.__proto__.__proto__ = end
 	    },
 	    def: function () {
 	        return Object.defineProperty.apply(Object, arguments)
