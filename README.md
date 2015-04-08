@@ -18,7 +18,7 @@ Let's look at the diagram of an example case of an stateful application:
 `Right` of disgram is an **UI Page** with 4 parts, each part depend on one state or transition.
 If we can subscribe all changes of state and transition, so we can bind specified DOM opertion when state/transition change,
 finally it implement the **data to DOM binding** , event can do more stuff for a completed **MVVM** framework such as [Zect](https://github.com/switer/Zect). 
-It's usefull, all right?
+It's usefull, right?
 
 ## Installation
 **browser:** 
