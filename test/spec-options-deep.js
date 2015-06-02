@@ -5,7 +5,8 @@ module.exports = function (Mux, assert) {
     var vm = new Mux({
         props: {
             person: {name: 'switer'},
-            comments: [{title: 'hello'}, 1]
+            comments: [{title: 'hello'}, 1],
+            post: [{ title: '', comments: [{author: 'switer'}] }]
         }
     })
     var vm2 = new Mux({
@@ -16,12 +17,26 @@ module.exports = function (Mux, assert) {
 
     describe('[deep]', function () {
         it('change subproperty using $set',function (done) {
+            var count = 3
             vm.$unwatch()
             vm.$watch('person.title', function (next, pre) {
                 assert.equal(next, 'hello')
-                done()
+                count --
+                !count && done()
+            })
+            vm.$watch('post.0.comments.0.author', function (next, pre) {
+                assert.equal(next, 'SZ')
+                count --
+                !count && done()
+            })
+            vm.$watch('post.0.title', function (next, pre) {
+                assert.equal(next, 'demo')
+                count --
+                !count && done()
             })
             vm.$set('person.title', 'hello')
+            vm.$set('post.0.title', 'demo')
+            vm.$set('post.0.comments.0.author', 'SZ')
         })
         it('change sub array property using $set',function (done) {
             vm.$unwatch()
