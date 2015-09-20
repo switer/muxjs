@@ -36,64 +36,6 @@ module.exports = function (Mux, assert) {
             comment.replies123 = true
             assert.equal(comment.replies123, true)
         })
-        it('Array .push() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 0)
-                assert.equal(next.length, 1)
-                done()
-            })
-            comment.replyUsers.push(1)
-        })
-        it('Array .pop() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 1)
-                assert.equal(next.length, 0)
-                done()
-            })
-            comment.replyUsers.pop()
-        })
-        it('Array .unshift() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 0)
-                assert.equal(next.length, 1)
-                done()
-            })
-            comment.replyUsers.unshift(2)
-        })
-        it('Array .shift() hook', function (done) {
-            comment.$unwatch()
-            comment.$watch('replyUsers', function (next, pre) {
-                assert.equal(pre.length, 1)
-                assert.equal(next.length, 0)
-                done()
-            })
-            comment.replyUsers.shift()
-        })
-        it('Array .reverse() hook', function (done) {
-            comment.$unwatch()
-            comment.$add('nums', [1,2,3,4])
-            comment.$watch('nums', function (next) {
-                assert.equal(next[0], 4)
-                assert.equal(next[1], 3)
-                assert.equal(next[2], 2)
-                assert.equal(next[3], 1)
-                done()
-            })
-            comment.nums.reverse()
-        })
-        it('Array .$concat() hook', function (done) {
-            comment.$unwatch()
-            comment.$set('nums', [1,2])
-            comment.$watch('nums', function (next) {
-                assert.equal(next[2], 3)
-                assert.equal(next[3], 4)
-                done()
-            })
-            comment.nums.$concat(3, [4])
-        })
     })
     describe('[computed]', function () {
         it('Default replies is 0', function () {

@@ -5,5 +5,6 @@ Mux.config({
 })
 require('./spec-global-api')(Mux, assert)
 require('./spec-instance-method')(Mux, assert)
+require('./spec-instance-array')(Mux, assert)
 require('./spec-options')(Mux, assert)
 require('./spec-options-deep')(Mux, assert)
