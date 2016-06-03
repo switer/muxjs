@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.14
+* Mux.js v2.4.15
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -1098,9 +1098,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function hasOwn (obj, prop) {
 	    return obj && obj.hasOwnProperty(prop)
 	}
+	var undef = void(0)
 	module.exports = {
 	    type: function (obj) {
-	        return /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))[1].toLowerCase()
+	        if (obj === null) return 'null'
+	        else if (obj === undef) return 'undefined'
+	        var m = /\[object (\w+)\]/.exec(Object.prototype.toString.call(obj))
+	        return m ? m[1].toLowerCase() : ''
 	    },
 	    objEach: function (obj, fn) {
 	        if (!obj) return
@@ -1116,7 +1120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    diff: function (next, pre, _t) {
 	        var that = this
 	        // defult max 4 level        
-	        _t = _t == undefined ? 4 : _t
+	        _t = _t === undefined ? 4 : _t
 
 	        if (_t <= 0) return next !== pre
 
@@ -1130,7 +1134,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var pkeys = Object.keys(pre)
 	            if (nkeys.length != pkeys.length) return true
 
-	            var that = this
 	            return nkeys.some(function(k) {
 	                return (!~pkeys.indexOf(k)) || that.diff(next[k], pre[k], _t - 1)
 	            })
