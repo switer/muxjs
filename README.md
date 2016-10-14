@@ -429,6 +429,13 @@ Destroy the instance, remove all listener of the internal emiter of the instance
 
 Whether the instance is destroyed or not.
 
+## Changgelog
+
+- 2016/10/14
+    + $set() will not return this.
+    + $set({ ... }) will emit in batch
+
+
 ## License
 
 MIT

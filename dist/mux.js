@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.15
+* Mux.js v2.4.16
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -161,7 +161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var emitter = options.emitter || new $Message(model) // EventEmitter of this model, context bind to model
 	    var _emitter = options._emitter || new $Message(model)
 	    var _computedCtx = $hasOwn(options, 'computedContext') ? options.computedContext : model
-	    var __kp__ = options.__kp__
+	    var __kp__ = $keypath.normalize(options.__kp__ || '')
 	    var __muxid__ = allotId()
 	    var _isExternalEmitter =  !!options.emitter
 	    var _isExternalPrivateEmitter =  !!options._emitter
@@ -389,21 +389,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kp <String> keyPath
 	     *  @return <Object> diff object
 	     */
-	    function _$sync(kp, value) {
+	    function _$sync(kp, value, lazyEmit) {
 	        var parts = $normalize(kp).split('.')
 	        var prop = parts[0]
 
 	        if ($indexOf(_computedKeys, prop)) {
 	            // since Mux@2.4.0 computed property support setter
 	            model[prop] = value
-	            return false
+	            return
 	        }
 	        if (!$indexOf(_observableKeys, prop)) {
 	            $warn('Property "' + prop + '" has not been observed')
 	            // return false means sync prop fail
-	            return false
+	            return
 	        }
-
 	        var pv = $keypath.get(_props, kp)
 	        var isObj = instanceOf(value, Object)
 	        var nKeypath = parts.join('.')
@@ -411,12 +410,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var parentPath = parts.join('.')
 	        var parent = $keypath.get(_props, parentPath)
 	        var isParentObserved = instanceOf(parent, Mux)
-
+	        var changed
 	        if (isParentObserved) {
 	            if ($hasOwn(parent, name)) {
-	                parent.$set(name, value)
+	                changed = parent.$set(name, value, lazyEmit)
 	            } else {
 	                parent.$add(name, value)
+	                changed = [$keypath.join(__kp__, kp), value]
 	            }
 	        } else {
 	            $keypath.set(
@@ -427,20 +427,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    : value
 	            )
 	            if ($util.diff(value, pv)) {
-	                _emitChange(kp, value, pv)
+	                if (!lazyEmit) {
+	                    _emitChange(kp, value, pv)
+	                } else {
+	                    changed = [$keypath.join(__kp__, kp), value, pv]
+	                }
 	            }
 	        }
-
+	        return changed
 	    }
 
 	    /**
 	     *  sync props value and trigger change event
 	     *  @param kp <String> keyPath
 	     */
-	    function _$set(kp, value) {
+	    function _$set(kp, value, lazyEmit) {
 	        if (_destroy) return _destroyNotice()
 
-	        _$sync(kp, value)
+	        return _$sync(kp, value, lazyEmit)
 	        // if (!diff) return
 	        /**
 	         *  Base type change of object type will be trigger change event
@@ -461,17 +465,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (_destroy) return _destroyNotice()
 
 	        if (!keyMap || $type(keyMap) != OBJECT) return
+	        var changes = []
 	        $util.objEach(keyMap, function (key, item) {
-	            _$set(key, item)
+	            var cg = _$set(key, item, true)
+	            if (cg) changes.push(cg)
+	        })
+	        changes.forEach(function (args) {
+	            _emitChange.apply(null, args)
 	        })
 	    }
 
 	    /**
-	     *  create a prop observer
+	     *  create a prop observer if not in observer, 
+	     *  return true if no value setting.
 	     *  @param prop <String> property name
 	     *  @param value property value
 	     */
-	    function _$add(prop, value, silence) {
+	    function _$add(prop, value, lazyEmit) {
 	        if (prop.match(/[\.\[\]]/)) {
 	            throw new Error('Propname shoudn\'t contains "." or "[" or "]"')
 	        }
@@ -492,14 +502,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        })
 	        // add peroperty will trigger change event
-	        !silence && _emitChange(prop, value)
+	        if (!lazyEmit) {
+	            _emitChange(prop, value)
+	        } else {
+	            return {
+	                kp: prop,
+	                vl: value
+	            }
+	        }
 	    }
 
 	    /**
 	     *  define computed prop/props of this model
 	     *  @param propname <String> property name
 	     *  @param deps <Array> computed property dependencies
-	     *  @param fn <Function> computed property getter
+	     *  @param get <Function> computed property getter
+	     *  @param set <Function> computed property setter
 	     *  @param enumerable <Boolean> whether property enumerable or not
 	     */
 	    function _$computed (propname, deps, getFn, setFn, enumerable) {
@@ -600,12 +618,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  define computed prop/props
 	     *  @param propname <String> property name
 	     *  @param deps <Array> computed property dependencies
-	     *  @param fn <Function> computed property getter
+	     *  @param getFn <Function> computed property getter
+	     *  @param setFn <Function> computed property setter
 	     *  @param enumerable <Boolean> Optional, whether property enumerable or not
 	     *  --------------------------------------------------
 	     *  @param propsObj <Object> define multiple properties
 	     */
-	    _defPrivateProperty('$computed', function (propname, deps, getFn, setFn, enumerable/* | [propsObj]*/) {
+	    _defPrivateProperty('$computed', function (propname/*, deps, getFn, setFn, enumerable | [propsObj]*/) {
 	        if ($type(propname) == STRING) {
 	            _$computed.apply(null, arguments)
 	        } else if ($type(propname) == OBJECT) {
@@ -625,18 +644,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	     *  @param kpMap <Object>
 	     */
 	    _defPrivateProperty('$set', function( /*[kp, value] | [kpMap]*/ ) {
-
 	        var args = arguments
 	        var len = args.length
 	        if (len >= 2 || (len == 1 && $type(args[0]) == STRING)) {
-	            _$set(args[0], args[1])
+	            return _$set(args[0], args[1], args[2])
 	        } else if (len == 1 && $type(args[0]) == OBJECT) {
-	            _$setMulti(args[0])
+	            return _$setMulti(args[0])
 	        } else {
 	            $warn('Unexpect $set params')
 	        }
-
-	        return this
 	    })
 
 	    /**
@@ -672,7 +688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var first = args[0]
 	        var key, callback
 	        if (len >= 2) {
-	            key = 'change:' + $normalize($join(_rootPath(), first))
+	            key = CHANGE_EVENT + ':' + $normalize($join(_rootPath(), first))
 	            callback = args[1]
 	        } else if (len == 1 && $type(first) == FUNCTION) {
 	            key = '*'
@@ -691,7 +707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /**
 	     *  unsubscribe prop change
 	     *  if params is (key, callback), remove callback from key's subscription
-	     *  if params is (callback), remove all callbacks from key' ubscription
+	     *  if params is (callback), remove all callbacks from key's subscription
 	     *  if params is empty, remove all callbacks of current model
 	     *  @param key <String>
 	     *  @param callback <Function>
@@ -713,7 +729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            case (len == 1 && $type(first) == FUNCTION):
 	                params = ['*', first]
 	                break
-	            case (len == 0):
+	            case (len === 0):
 	                params = []
 	                break
 	            default:
@@ -739,7 +755,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _defPrivateProperty('$emitter', function (em, _pem) {
 	        // return emitter instance if args is empty, 
 	        // for share some emitter with other instance
-	        if (arguments.length == 0) return emitter
+	        if (arguments.length === 0) return emitter
 	        emitter = em
 	        _walkResetEmiter(this.$props(), em, _pem)
 	        return this
