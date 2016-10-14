@@ -54,6 +54,27 @@ module.exports = function (Mux, assert) {
             })
             comment.replyUsers.push(1)
         })
+        it('Define computed setter', function () {
+            var mux = new Mux({
+                props: {
+                    count: 0
+                },
+                computed:  {
+                    replies: {
+                        deps: ['count'],
+                        get: function () {
+                            return this.count
+                        },
+                        set: function (v) {
+                            this.count = v
+                        }
+                    }
+                }
+            })
+            assert.equal(mux.replies, 0)
+            mux.replies = 2
+            assert.equal(mux.replies, 2)
+        })
     })
     describe('[emitter]', function () {
         it('Passing custom emitter', function (done) {

@@ -54,6 +54,18 @@ module.exports = function (Mux, assert) {
             unwatch()
             comment.$set('title','no callback')
         })
+        it('Unwatch by name and method', function (done) {
+            function handler() {
+                assert(false)
+            }
+            function handler2() {
+                done()
+            }
+            comment.$watch('title', handler)
+            comment.$watch('title', handler2)
+            comment.$unwatch('title', handler)
+            comment.$set('title','calback once')
+        })
         it('Unwatch last and watch again', function (done) {
             var count = 0
             comment.$unwatch('title')
