@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.16
+* Mux.js v2.4.17
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -413,9 +413,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var changed
 	        if (isParentObserved) {
 	            if ($hasOwn(parent, name)) {
-	                changed = parent.$set(name, value, lazyEmit)
+	                changed = parent._$set(name, value, lazyEmit)
 	            } else {
-	                parent.$add(name, value)
+	                parent._$add(name, value)
 	                changed = [$keypath.join(__kp__, kp), value]
 	            }
 	        } else {
@@ -614,6 +614,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return this
 	    })
+	    _defPrivateProperty('_$add', function (prop, value, lazyEmit) {
+	        var result = _$add(prop, value, !!lazyEmit)
+	        if (result === true) {
+	            return _$set(prop, value, !!lazyEmit)
+	        }
+	        return result
+	    })
 	    /**
 	     *  define computed prop/props
 	     *  @param propname <String> property name
@@ -647,14 +654,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var args = arguments
 	        var len = args.length
 	        if (len >= 2 || (len == 1 && $type(args[0]) == STRING)) {
-	            return _$set(args[0], args[1], args[2])
+	            return _$set(args[0], args[1])
 	        } else if (len == 1 && $type(args[0]) == OBJECT) {
 	            return _$setMulti(args[0])
 	        } else {
 	            $warn('Unexpect $set params')
 	        }
 	    })
-
+	    _defPrivateProperty('_$set', function(key, value, lazyEmit) {
+	        return _$set(key, value, !!lazyEmit)
+	    })
 	    /**
 	     *  Get property value by name, using for get value of computed property without cached
 	     *  change prop/props value, it will be trigger change event
