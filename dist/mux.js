@@ -1,5 +1,5 @@
 /**
-* Mux.js v2.4.17
+* Mux.js v2.4.18
 * (c) 2014 guankaishe
 * Released under the MIT License.
 */
@@ -415,8 +415,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if ($hasOwn(parent, name)) {
 	                changed = parent._$set(name, value, lazyEmit)
 	            } else {
-	                parent._$add(name, value)
-	                changed = [$keypath.join(__kp__, kp), value]
+	                parent._$add(name, value, lazyEmit)
+	                changed = [$keypath.join(_rootPath(), kp), value]
 	            }
 	        } else {
 	            $keypath.set(
@@ -430,7 +430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (!lazyEmit) {
 	                    _emitChange(kp, value, pv)
 	                } else {
-	                    changed = [$keypath.join(__kp__, kp), value, pv]
+	                    changed = [$keypath.join(_rootPath(), kp), value, pv]
 	                }
 	            }
 	        }
@@ -470,6 +470,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var cg = _$set(key, item, true)
 	            if (cg) changes.push(cg)
 	        })
+
 	        changes.forEach(function (args) {
 	            _emitChange.apply(null, args)
 	        })
@@ -847,7 +848,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	module.exports = Mux
-
 
 /***/ },
 /* 2 */
